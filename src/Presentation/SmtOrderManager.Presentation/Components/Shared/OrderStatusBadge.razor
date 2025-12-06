@@ -1,0 +1,38 @@
+@using SmtOrderManager.Domain.Enums
+
+<span class="badge @GetStatusClass()">
+    @GetStatusText()
+</span>
+
+@code {
+    [Parameter]
+    public OrderStatus Status { get; set; }
+
+    private string GetStatusClass()
+    {
+        return Status switch
+        {
+            OrderStatus.Draft => "bg-secondary",
+            OrderStatus.Submitted => "bg-primary",
+            OrderStatus.InProduction => "bg-warning text-dark",
+            OrderStatus.Completed => "bg-success",
+            OrderStatus.Cancelled => "bg-danger",
+            OrderStatus.Archived => "bg-secondary text-decoration-line-through",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetStatusText()
+    {
+        return Status switch
+        {
+            OrderStatus.Draft => "📝 Entwurf",
+            OrderStatus.Submitted => "📤 Eingereicht",
+            OrderStatus.InProduction => "🔧 In Produktion",
+            OrderStatus.Completed => "✅ Fertig",
+            OrderStatus.Cancelled => "❌ Storniert",
+            OrderStatus.Archived => "📦 Archiviert",
+            _ => Status.ToString()
+        };
+    }
+}

@@ -1,4 +1,5 @@
 using SmtOrderManager.Domain.Primitives;
+using SmtOrderManager.Domain.Enums;
 
 namespace SmtOrderManager.Domain.Entities;
 
@@ -16,6 +17,11 @@ public record Order : Entity
     /// Gets the date when the order was placed.
     /// </summary>
     public required DateTime OrderDate { get; init; }
+
+    /// <summary>
+    /// Gets the current status of the order.
+    /// </summary>
+    public required OrderStatus Status { get; init; }
 
     /// <summary>
     /// Gets the ID of the user who created this order.
@@ -51,6 +57,7 @@ public record Order : Entity
             Id = UuidV7Generator.Generate(),
             Description = description,
             OrderDate = orderDate,
+            Status = OrderStatus.Draft,
             UserId = userId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,

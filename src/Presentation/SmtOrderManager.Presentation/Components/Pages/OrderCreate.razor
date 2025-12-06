@@ -1,0 +1,119 @@
+@page "/orders/create"
+@using SmtOrderManager.Application.Features.Orders.Commands.CreateOrUpdateOrder
+@using SmtOrderManager.Domain.Entities
+@using SmtOrderManager.Domain.Enums
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+
+<PageTitle>Neue Order erstellen</PageTitle>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Neue Order erstellen</h2>
+        </div>
+        <div class="card-body">
+            <ErrorAlert ErrorMessage="@errorMessage" />
+
+            <EditForm Model="@this" OnValidSubmit="CreateOrder">
+                <div class="mb-3">
+                    <label class="form-label">Beschreibung *</label>
+                    <textarea class="form-control" @bind="orderDescription" rows="3" placeholder="z.B. Prototypen-Serie Q1 2026" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Bestelldatum *</label>
+                    <input type="date" class="form-control" @bind="orderDate" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">User ID (optional - für Testing)</label>
+                    <input type="text" class="form-control" @bind="userIdString" placeholder="GUID des Users (leer = Test-User)" />
+                    <small class="form-text text-muted">Wenn leer, wird eine Test-User-ID verwendet.</small>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Hinweis:</strong> Nach dem Erstellen kannst du Boards zur Order hinzufügen.
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span>Erstelle...</span>
+                        }
+                        else
+                        {
+                            <span>Order erstellen</span>
+                        }
+                    </button>
+                    <a href="/orders" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string orderDescription = string.Empty;
+    private DateTime orderDate = DateTime.Today;
+    private string userIdString = string.Empty;
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task CreateOrder()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Parse UserId if provided, otherwise use a test GUID
+            Guid userId;
+            if (!string.IsNullOrWhiteSpace(userIdString) && Guid.TryParse(userIdString, out var parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            else
+            {
+                // Create a test user ID (in production, this should come from authentication)
+                userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            }
+
+            // Create Order entity
+            var newOrder = new Order
+            {
+                Id = Guid.NewGuid(),
+                Description = orderDescription,
+                OrderDate = orderDate,
+                Status = OrderStatus.Draft,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = null,
+                BoardIds = new List<Guid>(),
+                Boards = new List<Board>()
+            };
+
+            var command = new CreateOrUpdateOrderCommand(newOrder);
+            var result = await Mediator.Send(command);
+
+            if (result.Success)
+            {
+                // Navigate to orders list (we don't have OrderDetail yet)
+                Navigation.NavigateTo("/orders");
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Fehler beim Erstellen der Order";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

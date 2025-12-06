@@ -1,0 +1,12 @@
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        <span class="alert-icon">⚠️</span>
+        <span>@ErrorMessage</span>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? ErrorMessage { get; set; }
+}

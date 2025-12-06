@@ -1,0 +1,123 @@
+@page "/boards/create"
+@using SmtOrderManager.Application.Features.Boards.Commands.CreateOrUpdateBoard
+@using SmtOrderManager.Domain.Entities
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+
+<PageTitle>Neues Board erstellen</PageTitle>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Neues Board erstellen</h2>
+        </div>
+        <div class="card-body">
+            <ErrorAlert ErrorMessage="@errorMessage" />
+
+            <EditForm Model="@this" OnValidSubmit="CreateBoard">
+                <div class="mb-3">
+                    <label class="form-label">Name *</label>
+                    <input type="text" class="form-control" @bind="boardName" placeholder="z.B. Arduino Uno Shield v2" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Beschreibung *</label>
+                    <textarea class="form-control" @bind="boardDescription" rows="3" placeholder="Beschreibung des Boards..." required></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Länge (mm) *</label>
+                        <input type="number" step="0.1" class="form-control" @bind="boardLength" min="0.1" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Breite (mm) *</label>
+                        <input type="number" step="0.1" class="form-control" @bind="boardWidth" min="0.1" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Order ID (optional)</label>
+                    <input type="text" class="form-control" @bind="orderIdString" placeholder="GUID der Order (leer lassen für standalone)" />
+                    <small class="form-text text-muted">Wenn leer, wird das Board ohne Order erstellt.</small>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span>Erstelle...</span>
+                        }
+                        else
+                        {
+                            <span>Board erstellen</span>
+                        }
+                    </button>
+                    <a href="/boards" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string boardName = string.Empty;
+    private string boardDescription = string.Empty;
+    private decimal boardLength = 100;
+    private decimal boardWidth = 80;
+    private string orderIdString = string.Empty;
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task CreateBoard()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            // Parse OrderId if provided
+            Guid? orderId = null;
+            if (!string.IsNullOrWhiteSpace(orderIdString) && Guid.TryParse(orderIdString, out var parsedOrderId))
+            {
+                orderId = parsedOrderId;
+            }
+
+            // Create Board entity
+            var newBoard = new Board
+            {
+                Id = Guid.NewGuid(),
+                Name = boardName,
+                Description = boardDescription,
+                Length = boardLength,
+                Width = boardWidth,
+                OrderId = orderId ?? Guid.Empty, // Use Empty if no order
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = null,
+                ComponentIds = new List<Guid>(),
+                Components = new List<Component>()
+            };
+
+            var command = new CreateOrUpdateBoardCommand(newBoard);
+            var result = await Mediator.Send(command);
+
+            if (result.Success)
+            {
+                // Navigate to the board detail page
+                Navigation.NavigateTo($"/boards/{newBoard.Id}");
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Fehler beim Erstellen des Boards";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

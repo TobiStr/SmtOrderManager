@@ -1,0 +1,266 @@
+@page "/boards/{BoardId:guid}"
+@using SmtOrderManager.Application.Features.Boards.Queries.GetBoardById
+@using SmtOrderManager.Application.Features.Components.Queries.GetAllComponents
+@using SmtOrderManager.Application.Features.Components.Commands.CreateOrUpdateComponent
+@using SmtOrderManager.Application.Features.Components.Commands.DeleteComponent
+@using SmtOrderManager.Domain.Entities
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Board Details</PageTitle>
+
+<div class="container mt-4">
+    @if (isLoading)
+    {
+        <LoadingSpinner IsLoading="true" Message="Lade Board..." />
+    }
+    else if (board == null)
+    {
+        <ErrorAlert ErrorMessage="@errorMessage" />
+        <a href="/orders" class="btn btn-primary">Zurück zu Orders</a>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2>@board.Name</h2>
+                <a href="/orders" class="btn btn-secondary">← Zurück</a>
+            </div>
+            <div class="card-body">
+                <p class="lead">@board.Description</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Abmessungen:</strong> @board.Length mm × @board.Width mm
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Fläche:</strong> @((board.Length * board.Width / 100).ToString("F2")) cm²
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Komponenten auf diesem Board</h3>
+                <button class="btn btn-primary btn-sm" @onclick="ShowAddComponentDialog">
+                    ➕ Komponente hinzufügen
+                </button>
+            </div>
+            <div class="card-body">
+                <ErrorAlert ErrorMessage="@errorMessage" />
+
+                @if (!components.Any())
+                {
+                    <div class="alert alert-info">
+                        Noch keine Komponenten auf diesem Board.
+                    </div>
+                }
+                else
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Beschreibung</th>
+                                <th>Menge</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var component in components)
+                            {
+                                <tr>
+                                    <td><strong>@component.Name</strong></td>
+                                    <td>@component.Description</td>
+                                    <td>@component.Quantity</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteComponent(component.Id)">
+                                            🗑 Löschen
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        @* Add Component Dialog *@
+        @if (showAddDialog)
+        {
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Neue Komponente hinzufügen</h5>
+                            <button type="button" class="btn-close" @onclick="CloseAddDialog"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Name *</label>
+                                <input type="text" class="form-control" @bind="newComponentName" placeholder="z.B. LM358 Dual Op-Amp" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Beschreibung *</label>
+                                <textarea class="form-control" @bind="newComponentDescription" rows="3" placeholder="Technische Details..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Menge *</label>
+                                <input type="number" class="form-control" @bind="newComponentQuantity" min="1" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseAddDialog">Abbrechen</button>
+                            <button type="button" class="btn btn-primary" @onclick="AddComponent">Hinzufügen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid BoardId { get; set; }
+
+    private Board? board;
+    private List<Component> components = new();
+    private bool isLoading;
+    private string? errorMessage;
+    private bool showAddDialog;
+
+    // Form fields
+    private string newComponentName = string.Empty;
+    private string newComponentDescription = string.Empty;
+    private int newComponentQuantity = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBoard();
+        await LoadComponents();
+    }
+
+    private async Task LoadBoard()
+    {
+        isLoading = true;
+        try
+        {
+            var query = new GetBoardByIdQuery(BoardId);
+            var result = await Mediator.Send(query);
+
+            if (result.Success)
+            {
+                board = result.GetOk();
+                errorMessage = null;
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Board nicht gefunden";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler beim Laden: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadComponents()
+    {
+        try
+        {
+            var query = new GetAllComponentsQuery();
+            var result = await Mediator.Send(query);
+
+            if (result.Success)
+            {
+                // Filter components by BoardId
+                components = result.GetOk().Where(c => c.BoardId == BoardId).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler beim Laden der Komponenten: {ex.Message}";
+        }
+    }
+
+    private void ShowAddComponentDialog()
+    {
+        showAddDialog = true;
+        newComponentName = string.Empty;
+        newComponentDescription = string.Empty;
+        newComponentQuantity = 1;
+    }
+
+    private void CloseAddDialog()
+    {
+        showAddDialog = false;
+    }
+
+    private async Task AddComponent()
+    {
+        try
+        {
+            // Create a new Component entity
+            var newComponent = new Component
+            {
+                Id = Guid.NewGuid(),
+                Name = newComponentName,
+                Description = newComponentDescription,
+                Quantity = newComponentQuantity,
+                ImageUrl = null,
+                BoardId = BoardId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = null
+            };
+
+            var command = new CreateOrUpdateComponentCommand(newComponent);
+            var result = await Mediator.Send(command);
+
+            if (result.Success)
+            {
+                showAddDialog = false;
+                await LoadComponents();
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Fehler beim Hinzufügen";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteComponent(Guid componentId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "Komponente wirklich löschen?"))
+            return;
+
+        try
+        {
+            var command = new DeleteComponentCommand(componentId);
+            var result = await Mediator.Send(command);
+
+            if (result.Success)
+            {
+                await LoadComponents();
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Fehler beim Löschen";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+    }
+}

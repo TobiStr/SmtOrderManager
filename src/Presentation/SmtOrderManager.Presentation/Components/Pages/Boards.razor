@@ -1,0 +1,101 @@
+@page "/boards"
+@using SmtOrderManager.Application.Features.Boards.Queries.GetAllBoards
+@using SmtOrderManager.Domain.Entities
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+
+<PageTitle>Boards</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Alle Boards</h1>
+        <a href="/boards/create" class="btn btn-primary">➕ Neues Board</a>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner IsLoading="true" Message="Lade Boards..." />
+    }
+    else
+    {
+        <ErrorAlert ErrorMessage="@errorMessage" />
+
+        @if (!boards.Any())
+        {
+            <div class="alert alert-info">
+                Noch keine Boards vorhanden.
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var board in boards)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">@board.Name</h5>
+                                <p class="card-text">@board.Description</p>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        📏 @board.Length × @board.Width mm<br />
+                                        📐 @((board.Length * board.Width / 100).ToString("F2")) cm²
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button class="btn btn-primary btn-sm" @onclick="() => NavigateToBoard(board.Id)">
+                                    Details ansehen →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Board> boards = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBoards();
+    }
+
+    private async Task LoadBoards()
+    {
+        isLoading = true;
+        try
+        {
+            var query = new GetAllBoardsQuery();
+            var result = await Mediator.Send(query);
+
+            if (result.Success)
+            {
+                boards = result.GetOk().ToList();
+                errorMessage = null;
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Fehler beim Laden der Boards";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToBoard(Guid boardId)
+    {
+        Navigation.NavigateTo($"/boards/{boardId}");
+    }
+}

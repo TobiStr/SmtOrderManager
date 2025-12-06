@@ -1,0 +1,101 @@
+@page "/orders"
+@using SmtOrderManager.Application.Features.Orders.Queries.GetAllOrders
+@using SmtOrderManager.Domain.Entities
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+
+<PageTitle>Orders</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Alle Orders</h1>
+        <a href="/orders/create" class="btn btn-primary">➕ Neue Order</a>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner IsLoading="true" Message="Lade Orders..." />
+    }
+    else
+    {
+        <ErrorAlert ErrorMessage="@errorMessage" />
+
+        @if (!orders.Any())
+        {
+            <div class="alert alert-info">
+                <h4>Noch keine Orders vorhanden</h4>
+                <p>Erstelle deine erste Order, um loszulegen!</p>
+                <a href="/orders/create" class="btn btn-primary">Erste Order erstellen</a>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var order in orders)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title">Order</h5>
+                                    <OrderStatusBadge Status="@order.Status" />
+                                </div>
+                                <p class="card-text">@order.Description</p>
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        📅 @order.OrderDate.ToString("dd.MM.yyyy")<br />
+                                        🔲 @order.BoardIds.Count Boards
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <small class="text-muted">
+                                    Erstellt: @order.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<Order> orders = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrders();
+    }
+
+    private async Task LoadOrders()
+    {
+        isLoading = true;
+        try
+        {
+            var query = new GetAllOrdersQuery();
+            var result = await Mediator.Send(query);
+
+            if (result.Success)
+            {
+                orders = result.GetOk().ToList();
+                errorMessage = null;
+            }
+            else
+            {
+                errorMessage = result.GetError().Message ?? "Fehler beim Laden der Orders";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
