@@ -16,20 +16,20 @@ public interface IComponentRepository
     Task<Result<Component>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets multiple components by their unique identifiers.
+    /// </summary>
+    /// <param name="ids">The collection of component IDs.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing the collection of components.</returns>
+    Task<Result<IEnumerable<Component>>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a component by its unique name.
     /// </summary>
     /// <param name="name">The component name.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result containing the component if found.</returns>
     Task<Result<Component>> GetByNameAsync(string name, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets all components for a specific board.
-    /// </summary>
-    /// <param name="boardId">The board ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result containing the collection of components.</returns>
-    Task<Result<IEnumerable<Component>>> GetByBoardIdAsync(Guid boardId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new component.

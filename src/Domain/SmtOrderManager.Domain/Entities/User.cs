@@ -28,7 +28,12 @@ public record User : Entity
     public DateTime? LastLoginAt { get; init; }
 
     /// <summary>
-    /// Gets the collection of orders created by this user.
+    /// Gets the collection of orderIds created by this user. (persisted to database)
+    /// </summary>
+    public IReadOnlyList<Guid> OrderIds { get; init; } = Array.Empty<Guid>();
+
+    /// <summary>
+    /// Gets the collection of orders created by this user. (not persisted to database)
     /// </summary>
     public IReadOnlyList<Order> Orders { get; init; } = Array.Empty<Order>();
 

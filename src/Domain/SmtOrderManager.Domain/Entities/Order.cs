@@ -23,7 +23,12 @@ public record Order : Entity
     public required Guid UserId { get; init; }
 
     /// <summary>
-    /// Gets the collection of boards in this order.
+    /// Gets the collection of board IDs in this order (persisted to database).
+    /// </summary>
+    public IReadOnlyList<Guid> BoardIds { get; init; } = Array.Empty<Guid>();
+
+    /// <summary>
+    /// Gets the collection of boards in this order (populated on retrieval, not persisted).
     /// </summary>
     public IReadOnlyList<Board> Boards { get; init; } = Array.Empty<Board>();
 
@@ -49,6 +54,7 @@ public record Order : Entity
             UserId = userId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,
+            BoardIds = Array.Empty<Guid>(),
             Boards = Array.Empty<Board>()
         };
     }
@@ -64,13 +70,15 @@ public record Order : Entity
         if (board.OrderId != Id)
             throw new InvalidOperationException("Board does not belong to this order.");
 
-        if (Boards.Any(b => b.Id == board.Id))
+        if (BoardIds.Contains(board.Id))
             throw new InvalidOperationException("Board already exists in this order.");
 
+        var newBoardIds = new List<Guid>(BoardIds) { board.Id };
         var newBoards = new List<Board>(Boards) { board };
 
         return this with
         {
+            BoardIds = newBoardIds,
             Boards = newBoards,
             UpdatedAt = DateTime.UtcNow
         };
@@ -81,14 +89,15 @@ public record Order : Entity
     /// </summary>
     public Order RemoveBoard(Guid boardId)
     {
-        var board = Boards.FirstOrDefault(b => b.Id == boardId);
-        if (board == null)
+        if (!BoardIds.Contains(boardId))
             throw new InvalidOperationException("Board not found in this order.");
 
+        var newBoardIds = BoardIds.Where(id => id != boardId).ToList();
         var newBoards = Boards.Where(b => b.Id != boardId).ToList();
 
         return this with
         {
+            BoardIds = newBoardIds,
             Boards = newBoards,
             UpdatedAt = DateTime.UtcNow
         };

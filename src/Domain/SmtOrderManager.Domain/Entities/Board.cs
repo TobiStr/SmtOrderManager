@@ -33,7 +33,12 @@ public record Board : Entity
     public required Guid OrderId { get; init; }
 
     /// <summary>
-    /// Gets the collection of components on this board.
+    /// Gets the collection of component IDs on this board (persisted to database).
+    /// </summary>
+    public IReadOnlyList<Guid> ComponentIds { get; init; } = Array.Empty<Guid>();
+
+    /// <summary>
+    /// Gets the collection of components on this board (populated on retrieval, not persisted).
     /// </summary>
     public IReadOnlyList<Component> Components { get; init; } = Array.Empty<Component>();
 
@@ -67,7 +72,52 @@ public record Board : Entity
             OrderId = orderId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,
+            ComponentIds = Array.Empty<Guid>(),
             Components = Array.Empty<Component>()
+        };
+    }
+
+    /// <summary>
+    /// Adds a component to the board by creating a new instance.
+    /// </summary>
+    public Board AddComponent(Component component)
+    {
+        if (component == null)
+            throw new ArgumentNullException(nameof(component));
+
+        if (component.BoardId != Id)
+            throw new InvalidOperationException("Component does not belong to this board.");
+
+        if (ComponentIds.Contains(component.Id))
+            throw new InvalidOperationException("Component already exists on this board.");
+
+        var newComponentIds = new List<Guid>(ComponentIds) { component.Id };
+        var newComponents = new List<Component>(Components) { component };
+
+        return this with
+        {
+            ComponentIds = newComponentIds,
+            Components = newComponents,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    /// <summary>
+    /// Removes a component from the board by creating a new instance.
+    /// </summary>
+    public Board RemoveComponent(Guid componentId)
+    {
+        if (!ComponentIds.Contains(componentId))
+            throw new InvalidOperationException("Component not found on this board.");
+
+        var newComponentIds = ComponentIds.Where(id => id != componentId).ToList();
+        var newComponents = Components.Where(c => c.Id != componentId).ToList();
+
+        return this with
+        {
+            ComponentIds = newComponentIds,
+            Components = newComponents,
+            UpdatedAt = DateTime.UtcNow
         };
     }
 }

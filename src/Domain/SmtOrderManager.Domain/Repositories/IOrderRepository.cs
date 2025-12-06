@@ -8,37 +8,20 @@ namespace SmtOrderManager.Domain.Repositories;
 public interface IOrderRepository
 {
     /// <summary>
-    /// Gets an order by its unique identifier.
+    /// Gets an order by its unique identifier with its associated boards and components.
     /// </summary>
     /// <param name="id">The order ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result containing the order if found.</returns>
+    /// <returns>A result containing the order with boards and components if found.</returns>
     Task<Result<Order>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all orders for a specific user.
+    /// Gets multiple orders by their unique identifiers with their associated boards and components.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
+    /// <param name="ids">The collection of order IDs.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result containing the collection of orders.</returns>
-    Task<Result<IEnumerable<Order>>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets all orders with their associated boards.
-    /// </summary>
-    /// <param name="userId">The user ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result containing the collection of orders with boards.</returns>
-    Task<Result<IEnumerable<Order>>> GetWithBoardsAsync(Guid userId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Searches orders by description.
-    /// </summary>
-    /// <param name="searchTerm">The search term.</param>
-    /// <param name="userId">The user ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result containing the collection of matching orders.</returns>
-    Task<Result<IEnumerable<Order>>> SearchAsync(string searchTerm, Guid userId, CancellationToken cancellationToken = default);
+    /// <returns>A result containing the collection of orders with boards and components.</returns>
+    Task<Result<IEnumerable<Order>>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new order.
