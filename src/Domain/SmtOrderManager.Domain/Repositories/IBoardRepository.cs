@@ -32,20 +32,12 @@ public interface IBoardRepository
     Task<Result<Board>> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new board.
+    /// Adds or updates a board.
     /// </summary>
-    /// <param name="board">The board to add.</param>
+    /// <param name="board">The board to upsert.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<Result> AddAsync(Board board, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an existing board.
-    /// </summary>
-    /// <param name="board">The board to update.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
-    Task<Result> UpdateAsync(Board board, CancellationToken cancellationToken = default);
+    Task<Result> AddOrUpdateAsync(Board board, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a board.

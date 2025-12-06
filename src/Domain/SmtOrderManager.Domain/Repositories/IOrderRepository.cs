@@ -24,20 +24,12 @@ public interface IOrderRepository
     Task<Result<IEnumerable<Order>>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new order.
+    /// Adds or updates an order.
     /// </summary>
-    /// <param name="order">The order to add.</param>
+    /// <param name="order">The order to upsert.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<Result> AddAsync(Order order, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an existing order.
-    /// </summary>
-    /// <param name="order">The order to update.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
-    Task<Result> UpdateAsync(Order order, CancellationToken cancellationToken = default);
+    Task<Result> AddOrUpdateAsync(Order order, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes an order.

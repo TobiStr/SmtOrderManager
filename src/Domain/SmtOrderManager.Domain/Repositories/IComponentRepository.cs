@@ -32,20 +32,12 @@ public interface IComponentRepository
     Task<Result<Component>> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new component.
+    /// Adds or updates a component.
     /// </summary>
-    /// <param name="component">The component to add.</param>
+    /// <param name="component">The component to upsert.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<Result> AddAsync(Component component, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an existing component.
-    /// </summary>
-    /// <param name="component">The component to update.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
-    Task<Result> UpdateAsync(Component component, CancellationToken cancellationToken = default);
+    Task<Result> AddOrUpdateAsync(Component component, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a component.
