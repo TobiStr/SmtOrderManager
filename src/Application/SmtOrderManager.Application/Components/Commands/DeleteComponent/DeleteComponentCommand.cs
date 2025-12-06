@@ -17,8 +17,27 @@ public class DeleteComponentCommandHandler : IRequestHandler<DeleteComponentComm
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result> Handle(DeleteComponentCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteComponentCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("DeleteComponentCommand handling for Component ID: {ComponentId}", request.ComponentId);
+        }
+
+        try
+        {
+            var deleteResult = await _componentRepository.DeleteAsync(request.ComponentId, cancellationToken);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("DeleteComponentCommand handled with success: {Success} for Component ID: {ComponentId}", deleteResult.Success, request.ComponentId);
+            }
+
+            return deleteResult;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling DeleteComponentCommand for Component ID: {ComponentId}", request.ComponentId);
+            return ex;
+        }
     }
 }

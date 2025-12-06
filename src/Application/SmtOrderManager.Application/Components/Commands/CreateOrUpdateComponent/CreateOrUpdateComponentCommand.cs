@@ -18,8 +18,32 @@ public class CreateOrUpdateComponentCommandHandler : IRequestHandler<CreateOrUpd
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Component>> Handle(CreateOrUpdateComponentCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Component>> Handle(CreateOrUpdateComponentCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("CreateOrUpdateComponentCommand handling for Component ID: {ComponentId}", request.Component.Id);
+        }
+
+        try
+        {
+            var upsertResult = await _componentRepository.AddOrUpdateAsync(request.Component, cancellationToken);
+            if (!upsertResult.Success)
+            {
+                return upsertResult.GetError();
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("CreateOrUpdateComponentCommand handled successfully for Component ID: {ComponentId}", request.Component.Id);
+            }
+
+            return request.Component;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling CreateOrUpdateComponentCommand for Component ID: {ComponentId}", request.Component.Id);
+            return ex;
+        }
     }
 }

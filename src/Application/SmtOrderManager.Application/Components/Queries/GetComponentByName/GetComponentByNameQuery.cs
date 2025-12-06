@@ -18,8 +18,28 @@ public class GetComponentByNameQueryHandler : IRequestHandler<GetComponentByName
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Component>> Handle(GetComponentByNameQuery request, CancellationToken cancellationToken)
+    public async Task<Result<Component>> Handle(GetComponentByNameQuery request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetComponentByNameQuery handling for Component name: {ComponentName}", request.Name);
+        }
+
+        try
+        {
+            var result = await _componentRepository.GetByNameAsync(request.Name, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetComponentByNameQuery handled with success: {Success} for Component name: {ComponentName}", result.Success, request.Name);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling GetComponentByNameQuery for Component name: {ComponentName}", request.Name);
+            return ex;
+        }
     }
 }

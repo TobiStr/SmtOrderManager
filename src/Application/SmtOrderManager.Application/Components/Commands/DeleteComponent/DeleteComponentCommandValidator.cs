@@ -6,5 +6,6 @@ public class DeleteComponentCommandValidator : AbstractValidator<DeleteComponent
 {
     public DeleteComponentCommandValidator()
     {
+        RuleFor(x => x.ComponentId).NotEmpty();
     }
 }
