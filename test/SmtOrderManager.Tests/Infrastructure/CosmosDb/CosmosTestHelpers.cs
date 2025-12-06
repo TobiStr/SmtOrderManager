@@ -6,13 +6,6 @@ namespace SmtOrderManager.Tests.Infrastructure.CosmosDb;
 
 internal static class CosmosTestHelpers
 {
-    public static ILoggerFactory CreateLoggerFactory() =>
-        LoggerFactory.Create(builder =>
-        {
-            builder.AddConsole();
-            builder.AddDebug();
-        });
-
     public static ItemResponse<T> CreateItemResponse<T>(T resource, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var responseMock = new Moq.Mock<ItemResponse<T>>();
