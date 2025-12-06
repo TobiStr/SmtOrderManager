@@ -1,10 +1,11 @@
-using System.Net;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SmtOrderManager.Domain.Entities;
 using SmtOrderManager.Infrastructure.CosmosDb;
+using SmtOrderManager.Tests.Application.TestHelpers;
+using System.Net;
 using Xunit;
 
 namespace SmtOrderManager.Tests.Infrastructure.CosmosDb;
@@ -136,7 +137,7 @@ public class ComponentRepositoryTests
         clientMock.Setup(c => c.GetDatabase(_options.DatabaseName))
             .Returns(databaseMock.Object);
 
-        var loggerFactory = CosmosTestHelpers.CreateLoggerFactory();
+        var loggerFactory = TestLoggerFactory.Create();
         var logger = loggerFactory.CreateLogger<ComponentRepository>();
         var repo = new ComponentRepository(clientMock.Object, Options.Create(_options), logger);
 
