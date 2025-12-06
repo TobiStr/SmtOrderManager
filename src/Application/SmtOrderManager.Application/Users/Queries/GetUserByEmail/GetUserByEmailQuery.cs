@@ -18,8 +18,28 @@ public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, R
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<User>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
+    public async Task<Result<User>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetUserByEmailQuery handling for Email: {Email}", request.Email);
+        }
+
+        try
+        {
+            var result = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetUserByEmailQuery handled with success: {Success} for Email: {Email}", result.Success, request.Email);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling GetUserByEmailQuery for Email: {Email}", request.Email);
+            return ex;
+        }
     }
 }

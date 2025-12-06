@@ -17,8 +17,28 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Resul
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("DeleteUserCommand handling for User ID: {UserId}", request.UserId);
+        }
+
+        try
+        {
+            var deleteResult = await _userRepository.DeleteAsync(request.UserId, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("DeleteUserCommand handled with success: {Success} for User ID: {UserId}", deleteResult.Success, request.UserId);
+            }
+
+            return deleteResult;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling DeleteUserCommand for User ID: {UserId}", request.UserId);
+            return ex;
+        }
     }
 }
