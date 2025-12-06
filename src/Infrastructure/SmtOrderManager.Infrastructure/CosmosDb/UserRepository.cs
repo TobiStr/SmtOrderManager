@@ -157,27 +157,27 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task<Result> AddAsync(DomainUser user, CancellationToken cancellationToken = default)
+    public async Task<Result> AddOrUpdateAsync(DomainUser user, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("AddAsync started for User ID: {UserId}, Email: {Email}", user.Id, user.Email);
+            _logger.LogDebug("AddOrUpdateAsync started for User ID: {UserId}, Email: {Email}", user.Id, user.Email);
         }
 
         try
         {
             var userToPersist = PrepareForPersistence(user);
 
-            await _container.CreateItemAsync(
+            await _container.UpsertItemAsync(
                 userToPersist,
                 new PartitionKey(userToPersist.Id.ToString()),
                 cancellationToken: cancellationToken);
 
-            _logger.LogInformation("User created successfully with ID: {UserId}, Email: {Email}", user.Id, user.Email);
+            _logger.LogInformation("User upserted successfully with ID: {UserId}, Email: {Email}", user.Id, user.Email);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("AddAsync completed for User ID: {UserId}", user.Id);
+                _logger.LogDebug("AddOrUpdateAsync completed for User ID: {UserId}", user.Id);
             }
 
             return Result.Ok;
@@ -189,45 +189,7 @@ public class UserRepository : IUserRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating User with ID {UserId}", user.Id);
-            return ex;
-        }
-    }
-
-    public async Task<Result> UpdateAsync(DomainUser user, CancellationToken cancellationToken = default)
-    {
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug("UpdateAsync started for User ID: {UserId}", user.Id);
-        }
-
-        try
-        {
-            var userToPersist = PrepareForPersistence(user);
-
-            await _container.ReplaceItemAsync(
-                userToPersist,
-                userToPersist.Id.ToString(),
-                new PartitionKey(userToPersist.Id.ToString()),
-                cancellationToken: cancellationToken);
-
-            _logger.LogInformation("User updated successfully with ID: {UserId}", user.Id);
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("UpdateAsync completed for User ID: {UserId}", user.Id);
-            }
-
-            return Result.Ok;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            _logger.LogWarning("User with ID {UserId} not found for update", user.Id);
-            return new Exception($"User with ID {user.Id} not found");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating User with ID {UserId}", user.Id);
+            _logger.LogError(ex, "Error upserting User with ID {UserId}", user.Id);
             return ex;
         }
     }

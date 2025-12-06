@@ -157,68 +157,40 @@ public class ComponentRepository : IComponentRepository
         }
     }
 
-    public async Task<Result> AddAsync(Component component, CancellationToken cancellationToken = default)
+    public async Task<Result> AddOrUpdateAsync(Component component, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("AddAsync started for Component ID: {ComponentId}", component.Id);
+            _logger.LogDebug("AddOrUpdateAsync started for Component ID: {ComponentId}", component.Id);
         }
 
         try
         {
-            await _container.CreateItemAsync(
+            await _container.UpsertItemAsync(
                 component,
                 new PartitionKey(component.BoardId.ToString()),
                 cancellationToken: cancellationToken);
 
-            _logger.LogInformation("Component created successfully with ID: {ComponentId} for Board ID: {BoardId}", component.Id, component.BoardId);
+            _logger.LogInformation(
+                "Component upserted successfully with ID: {ComponentId} for Board ID: {BoardId}",
+                component.Id,
+                component.BoardId);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("AddAsync completed for Component ID: {ComponentId}", component.Id);
-            }
-
-            return Result.Ok;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating Component with ID {ComponentId}", component.Id);
-            return ex;
-        }
-    }
-
-    public async Task<Result> UpdateAsync(Component component, CancellationToken cancellationToken = default)
-    {
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug("UpdateAsync started for Component ID: {ComponentId}", component.Id);
-        }
-
-        try
-        {
-            await _container.ReplaceItemAsync(
-                component,
-                component.Id.ToString(),
-                new PartitionKey(component.BoardId.ToString()),
-                cancellationToken: cancellationToken);
-
-            _logger.LogInformation("Component updated successfully with ID: {ComponentId}", component.Id);
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("UpdateAsync completed for Component ID: {ComponentId}", component.Id);
+                _logger.LogDebug("AddOrUpdateAsync completed for Component ID: {ComponentId}", component.Id);
             }
 
             return Result.Ok;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _logger.LogWarning("Component with ID {ComponentId} not found for update", component.Id);
+            _logger.LogWarning("Component with ID {ComponentId} not found for upsert", component.Id);
             return new Exception($"Component with ID {component.Id} not found");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating Component with ID {ComponentId}", component.Id);
+            _logger.LogError(ex, "Error upserting Component with ID {ComponentId}", component.Id);
             return ex;
         }
     }

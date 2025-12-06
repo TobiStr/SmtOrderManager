@@ -156,56 +156,27 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<Result> AddAsync(Order order, CancellationToken cancellationToken = default)
+    public async Task<Result> AddOrUpdateAsync(Order order, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("AddAsync started for Order ID: {OrderId}", order.Id);
+            _logger.LogDebug("AddOrUpdateAsync started for Order ID: {OrderId}", order.Id);
         }
 
         try
         {
-            await _container.CreateItemAsync(
-                order,
-                new PartitionKey(order.Id.ToString()),
+            var orderToPersist = PrepareForPersistence(order);
+
+            await _container.UpsertItemAsync(
+                orderToPersist,
+                new PartitionKey(orderToPersist.Id.ToString()),
                 cancellationToken: cancellationToken);
 
-            _logger.LogInformation("Order created successfully with ID: {OrderId}", order.Id);
+            _logger.LogInformation("Order upserted successfully with ID: {OrderId}", order.Id);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("AddAsync completed for Order ID: {OrderId}", order.Id);
-            }
-
-            return Result.Ok;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating Order with ID {OrderId}", order.Id);
-            return ex;
-        }
-    }
-
-    public async Task<Result> UpdateAsync(Order order, CancellationToken cancellationToken = default)
-    {
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug("UpdateAsync started for Order ID: {OrderId}", order.Id);
-        }
-
-        try
-        {
-            await _container.ReplaceItemAsync(
-                order,
-                order.Id.ToString(),
-                new PartitionKey(order.Id.ToString()),
-                cancellationToken: cancellationToken);
-
-            _logger.LogInformation("Order updated successfully with ID: {OrderId}", order.Id);
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("UpdateAsync completed for Order ID: {OrderId}", order.Id);
+                _logger.LogDebug("AddOrUpdateAsync completed for Order ID: {OrderId}", order.Id);
             }
 
             return Result.Ok;
@@ -255,5 +226,24 @@ public class OrderRepository : IOrderRepository
             _logger.LogError(ex, "Error deleting Order with ID {OrderId}", id);
             return ex;
         }
+    }
+
+    private static Order PrepareForPersistence(Order order)
+    {
+        var boardIds = new List<Guid>(order.BoardIds);
+
+        foreach (var board in order.Boards)
+        {
+            if (!boardIds.Contains(board.Id))
+            {
+                boardIds.Add(board.Id);
+            }
+        }
+
+        return order with
+        {
+            BoardIds = boardIds,
+            Boards = Array.Empty<Board>()
+        };
     }
 }

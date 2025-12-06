@@ -211,68 +211,37 @@ public class BoardRepository : IBoardRepository
         }
     }
 
-    public async Task<Result> AddAsync(Board board, CancellationToken cancellationToken = default)
+    public async Task<Result> AddOrUpdateAsync(Board board, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.LogDebug("AddAsync started for Board ID: {BoardId}", board.Id);
+            _logger.LogDebug("AddOrUpdateAsync started for Board ID: {BoardId}", board.Id);
         }
 
         try
         {
-            await _container.CreateItemAsync(
-                board,
-                new PartitionKey(board.OrderId.ToString()),
+            var boardToPersist = PrepareForPersistence(board);
+
+            await _container.UpsertItemAsync(
+                boardToPersist,
+                new PartitionKey(boardToPersist.OrderId.ToString()),
                 cancellationToken: cancellationToken);
 
-            _logger.LogInformation("Board created successfully with ID: {BoardId} for Order ID: {OrderId}", board.Id, board.OrderId);
+            _logger.LogInformation(
+                "Board upserted successfully with ID: {BoardId} for Order ID: {OrderId}",
+                board.Id,
+                board.OrderId);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("AddAsync completed for Board ID: {BoardId}", board.Id);
+                _logger.LogDebug("AddOrUpdateAsync completed for Board ID: {BoardId}", board.Id);
             }
 
             return Result.Ok;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating Board with ID {BoardId}", board.Id);
-            return ex;
-        }
-    }
-
-    public async Task<Result> UpdateAsync(Board board, CancellationToken cancellationToken = default)
-    {
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug("UpdateAsync started for Board ID: {BoardId}", board.Id);
-        }
-
-        try
-        {
-            await _container.ReplaceItemAsync(
-                board,
-                board.Id.ToString(),
-                new PartitionKey(board.OrderId.ToString()),
-                cancellationToken: cancellationToken);
-
-            _logger.LogInformation("Board updated successfully with ID: {BoardId}", board.Id);
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("UpdateAsync completed for Board ID: {BoardId}", board.Id);
-            }
-
-            return Result.Ok;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            _logger.LogWarning("Board with ID {BoardId} not found for update", board.Id);
-            return new Exception($"Board with ID {board.Id} not found");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating Board with ID {BoardId}", board.Id);
+            _logger.LogError(ex, "Error upserting Board with ID {BoardId}", board.Id);
             return ex;
         }
     }
@@ -319,5 +288,24 @@ public class BoardRepository : IBoardRepository
             _logger.LogError(ex, "Error deleting Board with ID {BoardId}", id);
             return ex;
         }
+    }
+
+    private static Board PrepareForPersistence(Board board)
+    {
+        var componentIds = new List<Guid>(board.ComponentIds);
+
+        foreach (var component in board.Components)
+        {
+            if (!componentIds.Contains(component.Id))
+            {
+                componentIds.Add(component.Id);
+            }
+        }
+
+        return board with
+        {
+            ComponentIds = componentIds,
+            Components = Array.Empty<Component>()
+        };
     }
 }
