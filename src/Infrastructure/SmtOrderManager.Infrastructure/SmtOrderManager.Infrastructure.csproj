@@ -10,4 +10,12 @@
     <ProjectReference Include="..\..\Application\SmtOrderManager.Application\SmtOrderManager.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.56.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+  </ItemGroup>
+
 </Project>

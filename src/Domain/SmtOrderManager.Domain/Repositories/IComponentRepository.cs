@@ -16,6 +16,14 @@ public interface IComponentRepository
     Task<Result<Component>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets multiple components by their unique identifiers.
+    /// </summary>
+    /// <param name="ids">The collection of component IDs.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing the collection of components.</returns>
+    Task<Result<IEnumerable<Component>>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a component by its unique name.
     /// </summary>
     /// <param name="name">The component name.</param>
@@ -24,28 +32,12 @@ public interface IComponentRepository
     Task<Result<Component>> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all components for a specific board.
+    /// Adds or updates a component.
     /// </summary>
-    /// <param name="boardId">The board ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result containing the collection of components.</returns>
-    Task<Result<IEnumerable<Component>>> GetByBoardIdAsync(Guid boardId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Adds a new component.
-    /// </summary>
-    /// <param name="component">The component to add.</param>
+    /// <param name="component">The component to upsert.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<Result> AddAsync(Component component, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an existing component.
-    /// </summary>
-    /// <param name="component">The component to update.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
-    Task<Result> UpdateAsync(Component component, CancellationToken cancellationToken = default);
+    Task<Result> AddOrUpdateAsync(Component component, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a component.

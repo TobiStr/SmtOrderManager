@@ -31,20 +31,12 @@ public interface IUserRepository
     Task<Result<IEnumerable<User>>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new user.
+    /// Adds or updates a user.
     /// </summary>
-    /// <param name="user">The user to add.</param>
+    /// <param name="user">The user to upsert.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<Result> AddAsync(User user, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an existing user.
-    /// </summary>
-    /// <param name="user">The user to update.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
-    Task<Result> UpdateAsync(User user, CancellationToken cancellationToken = default);
+    Task<Result> AddOrUpdateAsync(User user, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a user.
