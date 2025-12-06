@@ -24,6 +24,13 @@ public interface IBoardRepository
     Task<Result<IEnumerable<Board>>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all boards.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing all boards.</returns>
+    Task<Result<IEnumerable<Board>>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a board by its unique name with its associated components.
     /// </summary>
     /// <param name="name">The board name.</param>

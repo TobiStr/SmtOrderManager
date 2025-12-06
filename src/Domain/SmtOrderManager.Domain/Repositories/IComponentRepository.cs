@@ -24,6 +24,13 @@ public interface IComponentRepository
     Task<Result<IEnumerable<Component>>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all components.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing all components.</returns>
+    Task<Result<IEnumerable<Component>>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets a component by its unique name.
     /// </summary>
     /// <param name="name">The component name.</param>
