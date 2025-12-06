@@ -6,5 +6,7 @@ public class AddBoardToOrderCommandValidator : AbstractValidator<AddBoardToOrder
 {
     public AddBoardToOrderCommandValidator()
     {
+        RuleFor(x => x.OrderId).NotEmpty();
+        RuleFor(x => x.BoardId).NotEmpty();
     }
 }

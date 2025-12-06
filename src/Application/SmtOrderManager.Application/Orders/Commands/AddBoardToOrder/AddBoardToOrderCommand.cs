@@ -5,26 +5,58 @@ using SmtOrderManager.Domain.Repositories;
 
 namespace SmtOrderManager.Application.Orders.Commands.AddBoardToOrder;
 
-public record AddBoardToOrderCommand(Guid OrderId, Board Board) : IRequest<Result<Order>>;
+public record AddBoardToOrderCommand(Guid OrderId, Guid BoardId) : IRequest<Result<Order>>;
 
 public class AddBoardToOrderCommandHandler : IRequestHandler<AddBoardToOrderCommand, Result<Order>>
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly IBoardRepository _boardRepository;
     private readonly ILogger<AddBoardToOrderCommandHandler> _logger;
 
     public AddBoardToOrderCommandHandler(
         IOrderRepository orderRepository,
-        IBoardRepository boardRepository,
         ILogger<AddBoardToOrderCommandHandler> logger)
     {
         _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-        _boardRepository = boardRepository ?? throw new ArgumentNullException(nameof(boardRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Order>> Handle(AddBoardToOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Order>> Handle(AddBoardToOrderCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("AddBoardToOrderCommand handling for Order ID: {OrderId}, Board ID: {BoardId}", request.OrderId, request.BoardId);
+        }
+
+        try
+        {
+            var orderResult = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+            if (!orderResult.Success)
+            {
+                return orderResult.GetError();
+            }
+
+            var order = orderResult.GetOk();
+            var updatedOrder = order.BoardIds.Contains(request.BoardId)
+                ? order
+                : order with { BoardIds = order.BoardIds.Concat(new[] { request.BoardId }).ToList() };
+
+            var saveOrderResult = await _orderRepository.AddOrUpdateAsync(updatedOrder, cancellationToken);
+            if (!saveOrderResult.Success)
+            {
+                return saveOrderResult.GetError();
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("AddBoardToOrderCommand handled successfully for Order ID: {OrderId}", request.OrderId);
+            }
+
+            return updatedOrder;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling AddBoardToOrderCommand for Order ID: {OrderId}", request.OrderId);
+            return ex;
+        }
     }
 }

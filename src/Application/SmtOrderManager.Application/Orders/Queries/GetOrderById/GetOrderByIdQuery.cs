@@ -18,8 +18,28 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Resul
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Order>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<Order>> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetOrderByIdQuery handling for Order ID: {OrderId}", request.OrderId);
+        }
+
+        try
+        {
+            var result = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetOrderByIdQuery handled with success: {Success} for Order ID: {OrderId}", result.Success, request.OrderId);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling GetOrderByIdQuery for Order ID: {OrderId}", request.OrderId);
+            return ex;
+        }
     }
 }

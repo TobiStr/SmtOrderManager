@@ -17,8 +17,28 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, Res
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("DeleteOrderCommand handling for Order ID: {OrderId}", request.OrderId);
+        }
+
+        try
+        {
+            var deleteResult = await _orderRepository.DeleteAsync(request.OrderId, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("DeleteOrderCommand handled with success: {Success} for Order ID: {OrderId}", deleteResult.Success, request.OrderId);
+            }
+
+            return deleteResult;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling DeleteOrderCommand for Order ID: {OrderId}", request.OrderId);
+            return ex;
+        }
     }
 }
