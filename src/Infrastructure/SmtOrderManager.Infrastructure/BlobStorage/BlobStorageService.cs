@@ -85,4 +85,31 @@ public class BlobStorageService : IBlobStorageService
 
         return url;
     }
+
+    public async Task<Result> UploadAsync(string blobName, Stream content, CancellationToken cancellationToken = default)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("UploadAsync started for blob: {BlobName}", blobName);
+        }
+
+        try
+        {
+            var blobClient = _containerClient.GetBlobClient(blobName);
+            content.Position = 0;
+            await blobClient.UploadAsync(content, overwrite: true, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("UploadAsync completed successfully for blob: {BlobName}", blobName);
+            }
+
+            return Result.Ok;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading blob '{BlobName}'", blobName);
+            return ex;
+        }
+    }
 }
