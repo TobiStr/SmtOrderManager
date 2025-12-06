@@ -1,0 +1,10 @@
+using FluentValidation;
+
+namespace SmtOrderManager.Application.Orders.Commands.DeleteOrder;
+
+public class DeleteOrderCommandValidator : AbstractValidator<DeleteOrderCommand>
+{
+    public DeleteOrderCommandValidator()
+    {
+    }
+}
