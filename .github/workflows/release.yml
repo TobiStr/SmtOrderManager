@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/cicd-pipelines
 
 env:
   IMAGE_NAME: smt-order-manager
