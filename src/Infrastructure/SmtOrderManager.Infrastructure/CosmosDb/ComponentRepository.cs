@@ -157,6 +157,39 @@ public class ComponentRepository : IComponentRepository
         }
     }
 
+    public async Task<Result<IEnumerable<Component>>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetAllAsync started for components");
+        }
+
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c");
+            var iterator = _container.GetItemQueryIterator<Component>(query);
+            var components = new List<Component>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync(cancellationToken);
+                components.AddRange(response);
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetAllAsync completed. Found {Count} components", components.Count);
+            }
+
+            return components;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all components");
+            return ex;
+        }
+    }
+
     public async Task<Result> AddOrUpdateAsync(Component component, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))

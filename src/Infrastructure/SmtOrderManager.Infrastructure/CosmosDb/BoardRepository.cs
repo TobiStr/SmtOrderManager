@@ -211,6 +211,61 @@ public class BoardRepository : IBoardRepository
         }
     }
 
+    public async Task<Result<IEnumerable<Board>>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetAllAsync started for boards");
+        }
+
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c");
+            var iterator = _container.GetItemQueryIterator<Board>(query);
+            var boards = new List<Board>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync(cancellationToken);
+                boards.AddRange(response);
+            }
+
+            var populatedBoards = new List<Board>();
+            foreach (var board in boards)
+            {
+                if (board.ComponentIds.Any())
+                {
+                    var componentsResult = await _componentRepository.GetByIdsAsync(board.ComponentIds, cancellationToken);
+                    if (componentsResult.Success)
+                    {
+                        var components = componentsResult.GetOk();
+                        populatedBoards.Add(board with { Components = components.ToList() });
+                    }
+                    else
+                    {
+                        populatedBoards.Add(board);
+                    }
+                }
+                else
+                {
+                    populatedBoards.Add(board);
+                }
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetAllAsync completed. Found {Count} boards", populatedBoards.Count);
+            }
+
+            return populatedBoards;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all boards");
+            return ex;
+        }
+    }
+
     public async Task<Result> AddOrUpdateAsync(Board board, CancellationToken cancellationToken = default)
     {
         if (_logger.IsEnabled(LogLevel.Debug))
