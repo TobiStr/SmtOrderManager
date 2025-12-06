@@ -19,4 +19,13 @@ public interface IBlobStorageService
     /// <param name="blobName">The name of the blob.</param>
     /// <returns>The URL to access the blob.</returns>
     string GetBlobUrl(string blobName);
+
+    /// <summary>
+    /// Uploads a blob to storage.
+    /// </summary>
+    /// <param name="blobName">Target blob name.</param>
+    /// <param name="content">Stream content.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    Task<Result> UploadAsync(string blobName, Stream content, CancellationToken cancellationToken = default);
 }
