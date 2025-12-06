@@ -18,8 +18,28 @@ public class GetBoardByNameQueryHandler : IRequestHandler<GetBoardByNameQuery, R
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Board>> Handle(GetBoardByNameQuery request, CancellationToken cancellationToken)
+    public async Task<Result<Board>> Handle(GetBoardByNameQuery request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetBoardByNameQuery handling for Board name: {BoardName}", request.Name);
+        }
+
+        try
+        {
+            var result = await _boardRepository.GetByNameAsync(request.Name, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetBoardByNameQuery handled with success: {Success} for Board name: {BoardName}", result.Success, request.Name);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling GetBoardByNameQuery for Board name: {BoardName}", request.Name);
+            return ex;
+        }
     }
 }

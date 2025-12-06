@@ -5,26 +5,65 @@ using SmtOrderManager.Domain.Repositories;
 
 namespace SmtOrderManager.Application.Boards.Commands.AddComponentToBoard;
 
-public record AddComponentToBoardCommand(Guid BoardId, Component Component) : IRequest<Result<Board>>;
+public record AddComponentToBoardCommand(Guid BoardId, Guid ComponentId) : IRequest<Result<Board>>;
 
 public class AddComponentToBoardCommandHandler : IRequestHandler<AddComponentToBoardCommand, Result<Board>>
 {
     private readonly IBoardRepository _boardRepository;
-    private readonly IComponentRepository _componentRepository;
     private readonly ILogger<AddComponentToBoardCommandHandler> _logger;
 
     public AddComponentToBoardCommandHandler(
         IBoardRepository boardRepository,
-        IComponentRepository componentRepository,
         ILogger<AddComponentToBoardCommandHandler> logger)
     {
         _boardRepository = boardRepository ?? throw new ArgumentNullException(nameof(boardRepository));
-        _componentRepository = componentRepository ?? throw new ArgumentNullException(nameof(componentRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Board>> Handle(AddComponentToBoardCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Board>> Handle(AddComponentToBoardCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("AddComponentToBoardCommand handling for Board ID: {BoardId}, Component ID: {ComponentId}", request.BoardId, request.ComponentId);
+        }
+
+        try
+        {
+            var boardResult = await _boardRepository.GetByIdAsync(request.BoardId, cancellationToken);
+            if (!boardResult.Success)
+            {
+                return boardResult.GetError();
+            }
+
+            var board = boardResult.GetOk();
+
+            if (board.ComponentIds.Contains(request.ComponentId))
+            {
+                return board;
+            }
+
+            var updatedBoard = board with
+            {
+                ComponentIds = board.ComponentIds.Concat(new[] { request.ComponentId }).ToList()
+            };
+
+            var saveBoardResult = await _boardRepository.AddOrUpdateAsync(updatedBoard, cancellationToken);
+            if (!saveBoardResult.Success)
+            {
+                return saveBoardResult.GetError();
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("AddComponentToBoardCommand handled successfully for Board ID: {BoardId}", request.BoardId);
+            }
+
+            return updatedBoard;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling AddComponentToBoardCommand for Board ID: {BoardId}", request.BoardId);
+            return ex;
+        }
     }
 }

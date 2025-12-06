@@ -6,5 +6,6 @@ public class DeleteBoardCommandValidator : AbstractValidator<DeleteBoardCommand>
 {
     public DeleteBoardCommandValidator()
     {
+        RuleFor(x => x.BoardId).NotEmpty();
     }
 }

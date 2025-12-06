@@ -18,8 +18,32 @@ public class CreateOrUpdateBoardCommandHandler : IRequestHandler<CreateOrUpdateB
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Board>> Handle(CreateOrUpdateBoardCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Board>> Handle(CreateOrUpdateBoardCommand request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("CreateOrUpdateBoardCommand handling for Board ID: {BoardId}", request.Board.Id);
+        }
+
+        try
+        {
+            var upsertResult = await _boardRepository.AddOrUpdateAsync(request.Board, cancellationToken);
+            if (!upsertResult.Success)
+            {
+                return upsertResult.GetError();
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("CreateOrUpdateBoardCommand handled successfully for Board ID: {BoardId}", request.Board.Id);
+            }
+
+            return request.Board;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling CreateOrUpdateBoardCommand for Board ID: {BoardId}", request.Board.Id);
+            return ex;
+        }
     }
 }

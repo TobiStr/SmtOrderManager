@@ -18,8 +18,28 @@ public class GetBoardByIdQueryHandler : IRequestHandler<GetBoardByIdQuery, Resul
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public Task<Result<Board>> Handle(GetBoardByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<Board>> Handle(GetBoardByIdQuery request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetBoardByIdQuery handling for Board ID: {BoardId}", request.BoardId);
+        }
+
+        try
+        {
+            var result = await _boardRepository.GetByIdAsync(request.BoardId, cancellationToken);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetBoardByIdQuery handled with success: {Success} for Board ID: {BoardId}", result.Success, request.BoardId);
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling GetBoardByIdQuery for Board ID: {BoardId}", request.BoardId);
+            return ex;
+        }
     }
 }

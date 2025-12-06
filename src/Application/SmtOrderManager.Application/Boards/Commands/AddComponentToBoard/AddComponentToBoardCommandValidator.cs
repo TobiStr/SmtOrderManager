@@ -6,5 +6,7 @@ public class AddComponentToBoardCommandValidator : AbstractValidator<AddComponen
 {
     public AddComponentToBoardCommandValidator()
     {
+        RuleFor(x => x.BoardId).NotEmpty();
+        RuleFor(x => x.ComponentId).NotEmpty();
     }
 }
