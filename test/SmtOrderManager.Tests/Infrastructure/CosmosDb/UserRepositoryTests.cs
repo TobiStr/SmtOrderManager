@@ -5,6 +5,7 @@ using Moq;
 using SmtOrderManager.Domain.Entities;
 using SmtOrderManager.Domain.Repositories;
 using SmtOrderManager.Infrastructure.CosmosDb;
+using SmtOrderManager.Tests.Application.TestHelpers;
 using Xunit;
 using DomainUser = SmtOrderManager.Domain.Entities.User;
 
@@ -109,7 +110,7 @@ public class UserRepositoryTests
         clientMock.Setup(c => c.GetDatabase(_options.DatabaseName))
             .Returns(databaseMock.Object);
 
-        var loggerFactory = CosmosTestHelpers.CreateLoggerFactory();
+        var loggerFactory = TestLoggerFactory.Create();
         ILogger<UserRepository> logger = loggerFactory.CreateLogger<UserRepository>();
         var repo = new UserRepository(clientMock.Object, Options.Create(_options), orderRepository, logger);
 

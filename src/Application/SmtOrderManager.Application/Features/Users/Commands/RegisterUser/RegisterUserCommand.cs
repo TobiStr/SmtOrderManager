@@ -39,7 +39,7 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, R
                 return new InvalidOperationException($"User with email '{request.Email}' already exists.");
             }
 
-            var user = User.Create(request.Email, request.Name, "");
+            var user = User.Create(request.Email, request.Name, request.Password);
             var hashed = _passwordHasher.HashPassword(user, request.Password);
             user = user with { PasswordHash = hashed };
             var addResult = await _userRepository.AddOrUpdateAsync(user, cancellationToken);
