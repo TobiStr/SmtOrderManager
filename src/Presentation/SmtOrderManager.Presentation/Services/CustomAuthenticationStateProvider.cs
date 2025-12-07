@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.Security.Claims;
 using SmtOrderManager.Presentation.Models.DTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace SmtOrderManager.Presentation.Services;
 
@@ -14,18 +16,27 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     public const string Scheme = "CustomAuth";
 
     private readonly ProtectedSessionStorage _sessionStorage;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
     public CustomAuthenticationStateProvider(
-        ProtectedSessionStorage sessionStorage)
+        ProtectedSessionStorage sessionStorage,
+        IHttpContextAccessor httpContextAccessor)
     {
         _sessionStorage = sessionStorage;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         try
         {
+            var httpContextUser = _httpContextAccessor.HttpContext?.User;
+            if (httpContextUser?.Identity?.IsAuthenticated == true)
+            {
+                return await Task.FromResult(new AuthenticationState(httpContextUser));
+            }
+
             var userSessionResult = await _sessionStorage.GetAsync<UserDto>("UserSession");
             var userSession = userSessionResult.Success ? userSessionResult.Value : null;
 

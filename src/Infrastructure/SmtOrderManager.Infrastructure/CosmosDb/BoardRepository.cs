@@ -279,13 +279,12 @@ public class BoardRepository : IBoardRepository
 
             await _container.UpsertItemAsync(
                 boardToPersist,
-                new PartitionKey(boardToPersist.OrderId.ToString()),
+                new PartitionKey(boardToPersist.Id.ToString()),
                 cancellationToken: cancellationToken);
 
             _logger.LogInformation(
-                "Board upserted successfully with ID: {BoardId} for Order ID: {OrderId}",
-                board.Id,
-                board.OrderId);
+                "Board upserted successfully with ID: {BoardId}",
+                board.Id);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -321,7 +320,7 @@ public class BoardRepository : IBoardRepository
 
             await _container.DeleteItemAsync<Board>(
                 id.ToString(),
-                new PartitionKey(board.OrderId.ToString()),
+                new PartitionKey(board.Id.ToString()),
                 cancellationToken: cancellationToken);
 
             _logger.LogInformation("Board deleted successfully with ID: {BoardId}", id);

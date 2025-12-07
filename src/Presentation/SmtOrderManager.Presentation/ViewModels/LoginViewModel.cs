@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using MediatR;
 using Microsoft.AspNetCore.Components;
-using SmtOrderManager.Application.Features.Users.Commands.LoginUser;
+using Microsoft.JSInterop;
 using SmtOrderManager.Presentation.Models.DTOs;
 using SmtOrderManager.Presentation.Services;
 
@@ -12,16 +11,16 @@ namespace SmtOrderManager.Presentation.ViewModels;
 /// </summary>
 public class LoginViewModel
 {
-    private readonly IMediator _mediator;
+    private readonly IJSRuntime _jsRuntime;
     private readonly NavigationManager _navigationManager;
     private readonly CustomAuthenticationStateProvider _authStateProvider;
 
     public LoginViewModel(
-        IMediator mediator,
+        IJSRuntime jsRuntime,
         NavigationManager navigationManager,
         CustomAuthenticationStateProvider authStateProvider)
     {
-        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+        _jsRuntime = jsRuntime ?? throw new ArgumentNullException(nameof(jsRuntime));
         _navigationManager = navigationManager ?? throw new ArgumentNullException(nameof(navigationManager));
         _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider));
     }
@@ -54,31 +53,22 @@ public class LoginViewModel
 
         try
         {
-            var command = new LoginUserCommand(Email.Trim(), Password);
-            var result = await _mediator.Send(command);
-
-            if (result.Success)
+            var result = await _jsRuntime.InvokeAsync<LoginResponse>("smtAuth.login", new LoginRequest
             {
-                var user = result.GetOk();
+                Email = Email.Trim(),
+                Password = Password,
+                RememberMe = RememberMe
+            });
 
-                // User in UserDto konvertieren (für Sicherheit - ohne PasswordHash)
-                var userDto = new UserDto
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    Name = user.Name,
-                    LastLoginAt = user.LastLoginAt,
-                    CreatedAt = user.CreatedAt
-                };
+            if (result.Success && result.User is not null)
+            {
+                await _authStateProvider.MarkUserAsAuthenticated(result.User, RememberMe);
 
-                // User als authentifiziert markieren
-                await _authStateProvider.MarkUserAsAuthenticated(userDto, RememberMe);
-
-                _navigationManager.NavigateTo("/");
+                _navigationManager.NavigateTo("/", forceLoad: true);
             }
             else
             {
-                ErrorMessage = "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.";
+                ErrorMessage = result.ErrorMessage ?? "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.";
             }
         }
         catch (Exception ex)
@@ -103,5 +93,19 @@ public class LoginViewModel
     private void NotifyStateChanged()
     {
         StateChanged?.Invoke();
+    }
+
+    private sealed class LoginRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public bool RememberMe { get; set; }
+    }
+
+    private sealed class LoginResponse
+    {
+        public bool Success { get; set; }
+        public string? ErrorMessage { get; set; }
+        public UserDto? User { get; set; }
     }
 }

@@ -92,7 +92,6 @@ public class BoardDetailViewModel
                 selection.ComponentName,
                 selection.Comment ?? "Component from picker",
                 selection.Quantity,
-                Board.Id,
                 null  // ImageUrl wird aus der globalen Component übernommen
             );
 

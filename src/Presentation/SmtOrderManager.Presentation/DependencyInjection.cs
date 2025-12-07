@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -63,7 +65,14 @@ internal static class DependencyInjection
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        builder.Services.AddScoped(sp =>
+        {
+            var navigation = sp.GetRequiredService<NavigationManager>();
+            return new HttpClient { BaseAddress = new Uri(navigation.BaseUri) };
+        });
+
         builder.Services.AddScoped<ProtectedSessionStorage>();
+        builder.Services.AddHttpClient();
 
         builder.Services.AddHttpContextAccessor();
 
@@ -72,9 +81,16 @@ internal static class DependencyInjection
             options.DefaultScheme = CustomAuthenticationStateProvider.Scheme;
             options.DefaultAuthenticateScheme = CustomAuthenticationStateProvider.Scheme;
             options.DefaultChallengeScheme = CustomAuthenticationStateProvider.Scheme;
-        }).AddScheme<AuthenticationSchemeOptions, NoOpAuthenticationHandler>(
-            CustomAuthenticationStateProvider.Scheme,
-            _ => { });
+            options.DefaultSignInScheme = CustomAuthenticationStateProvider.Scheme;
+            options.DefaultSignOutScheme = CustomAuthenticationStateProvider.Scheme;
+        }).AddCookie(CustomAuthenticationStateProvider.Scheme, options =>
+        {
+            options.LoginPath = "/login";
+            options.AccessDeniedPath = "/not-found";
+            options.SlidingExpiration = true;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+        });
 
         builder.Services.AddAuthorization();
         builder.Services.AddCascadingAuthenticationState();

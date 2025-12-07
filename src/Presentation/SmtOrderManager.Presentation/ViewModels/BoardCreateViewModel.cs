@@ -36,7 +36,7 @@ public class BoardCreateViewModel
 
         try
         {
-            var board = Board.Create(Name, Description, Length, Width, OrderId ?? Guid.Empty);
+            var board = Board.Create(Name, Description, Length, Width);
             var command = new CreateOrUpdateBoardCommand(board);
             var result = await _mediator.Send(command);
 

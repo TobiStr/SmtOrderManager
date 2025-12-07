@@ -123,7 +123,6 @@ public class ComponentCreateViewModel
                 Name.Trim(),
                 Description.Trim(),
                 Quantity,
-                Guid.Empty, // Kein Board - globale Component
                 null // ImageUrl wird vom Command gesetzt
             );
 

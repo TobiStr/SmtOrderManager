@@ -11,6 +11,5 @@ public class CreateOrUpdateBoardCommandValidator : AbstractValidator<CreateOrUpd
         RuleFor(x => x.Board.Description).NotEmpty();
         RuleFor(x => x.Board.Length).GreaterThan(0);
         RuleFor(x => x.Board.Width).GreaterThan(0);
-        RuleFor(x => x.Board.OrderId).NotEmpty();
     }
 }
