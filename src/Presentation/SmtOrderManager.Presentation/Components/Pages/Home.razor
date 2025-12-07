@@ -5,7 +5,7 @@
 <div class="container mt-4">
     <div class="jumbotron">
         <h1 class="display-4">SMT Order Manager</h1>
-        <p class="lead">Willkommen beim SMT Order Manager - Verwalte deine Boards, Components und Orders zentral.</p>
+        <p class="lead">Welcome to SMT Order Manager - Manage your boards, components, and orders centrally.</p>
         <hr class="my-4" />
     </div>
 
@@ -14,10 +14,10 @@
             <div class="card text-center h-100">
                 <div class="card-body">
                     <h2 class="card-title">📋 Orders</h2>
-                    <p class="card-text">Verwalte deine Bestellungen und Orders.</p>
+                    <p class="card-text">Manage your orders and purchases.</p>
                     <div class="d-flex flex-column gap-2">
-                        <a href="/orders" class="btn btn-outline-primary">Alle Orders anzeigen</a>
-                        <a href="/orders/create" class="btn btn-primary">➕ Neue Order erstellen</a>
+                        <a href="/orders" class="btn btn-outline-primary">View All Orders</a>
+                        <a href="/orders/create" class="btn btn-primary">➕ Create New Order</a>
                     </div>
                 </div>
             </div>
@@ -27,10 +27,10 @@
             <div class="card text-center h-100">
                 <div class="card-body">
                     <h2 class="card-title">🔲 Boards</h2>
-                    <p class="card-text">Verwalte deine elektrischen Boards.</p>
+                    <p class="card-text">Manage your electrical boards.</p>
                     <div class="d-flex flex-column gap-2">
-                        <a href="/boards" class="btn btn-outline-primary">Alle Boards anzeigen</a>
-                        <a href="/boards/create" class="btn btn-primary">➕ Neues Board erstellen</a>
+                        <a href="/boards" class="btn btn-outline-primary">View All Boards</a>
+                        <a href="/boards/create" class="btn btn-primary">➕ Create New Board</a>
                     </div>
                 </div>
             </div>
@@ -40,14 +40,10 @@
             <div class="card text-center h-100">
                 <div class="card-body">
                     <h2 class="card-title">🔧 Components</h2>
-                    <p class="card-text">Components werden innerhalb von Boards verwaltet.</p>
+                    <p class="card-text">Manage component library.</p>
                     <div class="d-flex flex-column gap-2">
-                        <p class="text-muted small">
-                            Um Components hinzuzufügen:<br />
-                            1. Board erstellen oder öffnen<br />
-                            2. Components zum Board hinzufügen
-                        </p>
-                        <a href="/boards" class="btn btn-outline-secondary">Zu Boards</a>
+                        <a href="/components" class="btn btn-outline-primary">View All Components</a>
+                        <a href="/components/create" class="btn btn-primary">➕ Create New Component</a>
                     </div>
                 </div>
             </div>
@@ -57,15 +53,15 @@
     <div class="row mt-4">
         <div class="col-12">
             <div class="alert alert-info">
-                <h4 class="alert-heading">🚀 Schnellstart</h4>
+                <h4 class="alert-heading">🚀 Quick Start</h4>
                 <ol>
-                    <li><strong>Order erstellen</strong> - Erstelle eine neue Order für deine Bestellung</li>
-                    <li><strong>Board erstellen</strong> - Erstelle ein Board (kann später einer Order zugeordnet werden)</li>
-                    <li><strong>Components hinzufügen</strong> - Öffne das Board und füge elektronische Komponenten hinzu</li>
+                    <li><strong>Create Order</strong> - Create a new order for your purchase</li>
+                    <li><strong>Create Board</strong> - Create a board (can be assigned to an order later)</li>
+                    <li><strong>Add Components</strong> - Open a board and add electronic components to it</li>
                 </ol>
                 <hr />
                 <p class="mb-0">
-                    <strong>Hinweis:</strong> Stelle sicher, dass der CosmosDB Emulator läuft (localhost:8081), um Daten zu speichern.
+                    <strong>Note:</strong> Make sure the CosmosDB Emulator is running (localhost:8081) to store data.
                 </p>
             </div>
         </div>

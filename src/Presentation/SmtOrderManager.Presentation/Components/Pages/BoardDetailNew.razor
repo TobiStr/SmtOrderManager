@@ -10,7 +10,7 @@
 <div class="container-fluid mt-4">
     @if (ViewModel.IsLoading && ViewModel.Board == null)
     {
-        <LoadingSpinner Message="Loading board..." />
+        <LoadingSpinner Message="Board wird geladen..." />
     }
     else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage) && ViewModel.Board == null)
     {
@@ -32,7 +32,7 @@
             </div>
             <div class="col-auto">
                 <button class="btn btn-outline-danger" @onclick="OnDeleteBoardClickedAsync">
-                    <span class="bi bi-trash"></span> Delete Board
+                    <span class="bi bi-trash"></span> Board löschen
                 </button>
             </div>
         </div>
@@ -55,10 +55,10 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Dimensions</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Abmessungen</h6>
                         <p class="card-text">
                             <strong>@ViewModel.GetDimensions(ViewModel.Board)</strong><br />
-                            <small class="text-muted">Area: @ViewModel.GetTotalArea(ViewModel.Board).ToString("F2") mm²</small>
+                            <small class="text-muted">Fläche: @ViewModel.GetTotalArea(ViewModel.Board).ToString("F2") mm²</small>
                         </p>
                     </div>
                 </div>
@@ -68,7 +68,7 @@
                     <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted">Components</h6>
                         <p class="card-text">
-                            <strong>@ViewModel.GetComponentCount(ViewModel.Board)</strong> Component(s) on this board
+                            <strong>@ViewModel.GetComponentCount(ViewModel.Board)</strong> Component(s) auf diesem Board
                         </p>
                     </div>
                 </div>
@@ -76,7 +76,7 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Created</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Erstellt</h6>
                         <p class="card-text">
                             @ViewModel.Board.CreatedAt.ToString("dd.MM.yyyy HH:mm")
                         </p>
@@ -88,23 +88,23 @@
         <!-- Components Section -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Components on this Board</h5>
+                <h5 class="mb-0">Components auf diesem Board</h5>
                 <button class="btn btn-primary btn-sm"
                         @onclick="@(() => ViewModel.OpenComponentPicker())"
                         disabled="@ViewModel.IsLoading">
-                    <span class="bi bi-plus-circle"></span> Add Component
+                    <span class="bi bi-plus-circle"></span> Component hinzufügen
                 </button>
             </div>
             <div class="card-body">
                 @if (ViewModel.IsLoading)
                 {
-                    <LoadingSpinner Message="Updating components..." />
+                    <LoadingSpinner Message="Components werden aktualisiert..." />
                 }
                 else if (!ViewModel.Board.Components.Any())
                 {
                     <div class="alert alert-info">
                         <span class="bi bi-info-circle"></span>
-                        No components on this board yet. Add components from the global library.
+                        Noch keine Components auf diesem Board. Fügen Sie Components aus der globalen Bibliothek hinzu.
                     </div>
                 }
                 else
@@ -113,11 +113,11 @@
                         <table class="table table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Image</th>
+                                    <th>Bild</th>
                                     <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Quantity</th>
-                                    <th class="text-end">Actions</th>
+                                    <th>Beschreibung</th>
+                                    <th>Anzahl</th>
+                                    <th class="text-end">Aktionen</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -142,7 +142,7 @@
                                         <td class="text-end">
                                             <button class="btn btn-sm btn-outline-danger ms-1"
                                                     @onclick="@(async () => await OnRemoveComponentClickedAsync(component))"
-                                                    title="Remove">
+                                                    title="Entfernen">
                                                 <span class="bi bi-trash"></span>
                                             </button>
                                         </td>
@@ -200,8 +200,8 @@
         if (confirmDialog != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Remove Component",
-                $"Are you sure you want to remove component '{component.Name}' from this board?"
+                "Component entfernen",
+                $"Möchten Sie die Component '{component.Name}' wirklich von diesem Board entfernen?"
             );
 
             if (confirmed)
@@ -216,8 +216,8 @@
         if (confirmDialog != null && ViewModel.Board != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Delete Board",
-                $"Are you sure you want to delete board '{ViewModel.Board.Name}'? This action cannot be undone."
+                "Board löschen",
+                $"Möchten Sie das Board '{ViewModel.Board.Name}' wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
             );
 
             if (confirmed)

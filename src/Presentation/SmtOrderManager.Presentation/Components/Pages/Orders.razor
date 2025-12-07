@@ -1,101 +1,216 @@
 @page "/orders"
-@using SmtOrderManager.Application.Features.Orders.Queries.GetAllOrders
-@using SmtOrderManager.Domain.Entities
-@inject IMediator Mediator
-@inject NavigationManager Navigation
+@using SmtOrderManager.Presentation.ViewModels
+@using SmtOrderManager.Domain.Enums
+@inject OrderListViewModel ViewModel
+@implements IDisposable
 
-<PageTitle>Orders</PageTitle>
+<PageTitle>Orders - SMT Order Manager</PageTitle>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Alle Orders</h1>
-        <a href="/orders/create" class="btn btn-primary">➕ Neue Order</a>
+        <h1>📦 Alle Orders</h1>
+        <button class="btn btn-primary" @onclick="ViewModel.NavigateToCreate">
+            <span class="bi bi-plus-circle"></span> Neue Order
+        </button>
     </div>
 
-    @if (isLoading)
+    <!-- Statistics Cards -->
+    @if (!ViewModel.IsLoading && ViewModel.AllOrders.Any())
     {
-        <LoadingSpinner IsLoading="true" Message="Lade Orders..." />
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Gesamt</h6>
+                        <h3 class="mb-0">@ViewModel.TotalCount</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2">Entwürfe</h6>
+                        <h3 class="mb-0">@ViewModel.DraftCount</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2">Eingereicht</h6>
+                        <h3 class="mb-0">@ViewModel.SubmittedCount</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2">Fertig</h6>
+                        <h3 class="mb-0">@ViewModel.CompletedCount</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter Section -->
+    @if (!ViewModel.IsLoading && ViewModel.AllOrders.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Suche</label>
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Beschreibung durchsuchen..."
+                               value="@ViewModel.SearchTerm"
+                               @oninput="@(e => { ViewModel.SearchTerm = e.Value?.ToString(); ViewModel.ApplyFilter(); })" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" @bind="ViewModel.SelectedStatus" @bind:after="@(() => ViewModel.ApplyFilter())">
+                            <option value="">Alle</option>
+                            <option value="@OrderStatus.Draft">Entwurf</option>
+                            <option value="@OrderStatus.Submitted">Eingereicht</option>
+                            <option value="@OrderStatus.InProduction">In Produktion</option>
+                            <option value="@OrderStatus.Completed">Fertig</option>
+                            <option value="@OrderStatus.Cancelled">Storniert</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Von Datum</label>
+                        <input type="date"
+                               class="form-control"
+                               @bind="ViewModel.FromDate"
+                               @bind:after="@(() => ViewModel.ApplyFilter())" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Bis Datum</label>
+                        <input type="date"
+                               class="form-control"
+                               @bind="ViewModel.ToDate"
+                               @bind:after="@(() => ViewModel.ApplyFilter())" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100" @onclick="ViewModel.ClearFilters">
+                            <span class="bi bi-x-circle"></span> Filter löschen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Loading State -->
+    @if (ViewModel.IsLoading)
+    {
+        <LoadingSpinner Message="Orders werden geladen..." />
+    }
+    else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+    {
+        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+    }
+    else if (!ViewModel.AllOrders.Any())
+    {
+        <!-- Empty State -->
+        <div class="alert alert-info">
+            <h4><span class="bi bi-inbox"></span> Noch keine Orders vorhanden</h4>
+            <p>Erstellen Sie Ihre erste Order, um loszulegen!</p>
+            <button class="btn btn-primary" @onclick="ViewModel.NavigateToCreate">
+                <span class="bi bi-plus-circle"></span> Erste Order erstellen
+            </button>
+        </div>
+    }
+    else if (!ViewModel.FilteredOrders.Any())
+    {
+        <!-- No Results -->
+        <div class="alert alert-warning">
+            <h5><span class="bi bi-search"></span> Keine Orders gefunden</h5>
+            <p>Keine Orders entsprechen den aktuellen Filterkriterien.</p>
+            <button class="btn btn-outline-secondary" @onclick="ViewModel.ClearFilters">
+                Filter zurücksetzen
+            </button>
+        </div>
     }
     else
     {
-        <ErrorAlert ErrorMessage="@errorMessage" />
-
-        @if (!orders.Any())
-        {
-            <div class="alert alert-info">
-                <h4>Noch keine Orders vorhanden</h4>
-                <p>Erstelle deine erste Order, um loszulegen!</p>
-                <a href="/orders/create" class="btn btn-primary">Erste Order erstellen</a>
-            </div>
-        }
-        else
-        {
-            <div class="row">
-                @foreach (var order in orders)
-                {
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="card-title">Order</h5>
-                                    <OrderStatusBadge Status="@order.Status" />
-                                </div>
-                                <p class="card-text">@order.Description</p>
-                                <div class="mb-2">
-                                    <small class="text-muted">
-                                        📅 @order.OrderDate.ToString("dd.MM.yyyy")<br />
-                                        🔲 @order.BoardIds.Count Boards
-                                    </small>
-                                </div>
+        <!-- Orders Grid -->
+        <div class="row">
+            @foreach (var order in ViewModel.FilteredOrders)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm hover-shadow" style="cursor: pointer;" @onclick="@(() => ViewModel.NavigateToDetail(order.Id))">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">
+                                    📦 Order
+                                </h5>
+                                <OrderStatusBadge Status="@order.Status" />
                             </div>
-                            <div class="card-footer">
+
+                            <p class="card-text text-muted mb-3">
+                                @if (!string.IsNullOrWhiteSpace(order.Description))
+                                {
+                                    @(order.Description.Length > 100 ? order.Description.Substring(0, 100) + "..." : order.Description)
+                                }
+                                else
+                                {
+                                    <em>Keine Beschreibung</em>
+                                }
+                            </p>
+
+                            <div class="mb-2">
                                 <small class="text-muted">
-                                    Erstellt: @order.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                    <span class="bi bi-calendar"></span> @order.OrderDate.ToString("dd.MM.yyyy")<br />
+                                    <span class="bi bi-grid-3x3"></span> @ViewModel.GetBoardCount(order) Board(s)
                                 </small>
                             </div>
                         </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">
+                                Erstellt: @order.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                            </small>
+                        </div>
                     </div>
-                }
+                </div>
+            }
+        </div>
+
+        <!-- Results Summary -->
+        @if (ViewModel.FilteredCount != ViewModel.TotalCount)
+        {
+            <div class="mt-3 text-muted text-center">
+                Zeige @ViewModel.FilteredCount von @ViewModel.TotalCount Orders
             </div>
         }
     }
 </div>
 
-@code {
-    private List<Order> orders = new();
-    private bool isLoading;
-    private string? errorMessage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadOrders();
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.2s ease-in-out;
     }
 
-    private async Task LoadOrders()
-    {
-        isLoading = true;
-        try
-        {
-            var query = new GetAllOrdersQuery();
-            var result = await Mediator.Send(query);
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
 
-            if (result.Success)
-            {
-                orders = result.GetOk().ToList();
-                errorMessage = null;
-            }
-            else
-            {
-                errorMessage = result.GetError().Message ?? "Fehler beim Laden der Orders";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Fehler: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.LoadAsync();
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
     }
 }

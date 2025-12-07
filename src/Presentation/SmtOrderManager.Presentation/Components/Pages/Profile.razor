@@ -1,0 +1,193 @@
+@page "/profile"
+@using SmtOrderManager.Presentation.ViewModels
+@using System.ComponentModel.DataAnnotations
+@inject UserProfileViewModel ViewModel
+@implements IDisposable
+
+<PageTitle>My Profile - SMT Order Manager</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2>
+                <span class="bi bi-person-circle"></span> My Profile
+            </h2>
+            <hr />
+
+            @if (ViewModel.IsLoading && ViewModel.User == null)
+            {
+                <LoadingSpinner Message="Loading profile..." />
+            }
+            else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage) && ViewModel.User == null)
+            {
+                <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+                <a href="/" class="btn btn-primary mt-3">Go to Home</a>
+            }
+            else if (ViewModel.User != null)
+            {
+                <!-- User Info Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">User Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>Email:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                @ViewModel.User.Email
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>Name:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                @ViewModel.User.Name
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>Member Since:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                @ViewModel.User.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Last Login:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                @if (ViewModel.User.LastLoginAt.HasValue)
+                                {
+                                    @ViewModel.User.LastLoginAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                }
+                                else
+                                {
+                                    <text>-</text>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Change Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Change Password</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+                        {
+                            <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(ViewModel.SuccessMessage))
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <span class="bi bi-check-circle"></span> @ViewModel.SuccessMessage
+                                <button type="button" class="btn-close" @onclick="@(() => StateHasChanged())"></button>
+                            </div>
+                        }
+
+                        <EditForm Model="@ViewModel" OnValidSubmit="HandlePasswordChangeSubmit" FormName="ChangePasswordForm">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password *</label>
+                                <InputText id="currentPassword"
+                                           type="password"
+                                           class="form-control"
+                                           @bind-Value="ViewModel.CurrentPassword"
+                                           placeholder="••••••••"
+                                           disabled="@ViewModel.IsLoading" />
+                                <ValidationMessage For="@(() => ViewModel.CurrentPassword)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password *</label>
+                                <InputText id="newPassword"
+                                           type="password"
+                                           class="form-control"
+                                           @bind-Value="ViewModel.NewPassword"
+                                           placeholder="••••••••"
+                                           disabled="@ViewModel.IsLoading" />
+                                <ValidationMessage For="@(() => ViewModel.NewPassword)" class="text-danger" />
+                                <small class="form-text text-muted">At least 6 characters</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmNewPassword" class="form-label">Confirm New Password *</label>
+                                <InputText id="confirmNewPassword"
+                                           type="password"
+                                           class="form-control"
+                                           @bind-Value="ViewModel.ConfirmNewPassword"
+                                           placeholder="••••••••"
+                                           disabled="@ViewModel.IsLoading" />
+                                <ValidationMessage For="@(() => ViewModel.ConfirmNewPassword)" class="text-danger" />
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        @onclick="ViewModel.ResetPasswordFields"
+                                        disabled="@ViewModel.IsLoading">
+                                    <span class="bi bi-x-circle"></span> Reset
+                                </button>
+                                <button type="submit"
+                                        class="btn btn-primary"
+                                        disabled="@ViewModel.IsLoading">
+                                    @if (ViewModel.IsLoading)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <text>Changing password...</text>
+                                    }
+                                    else
+                                    {
+                                        <span class="bi bi-key"></span>
+                                        <text> Change Password</text>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="alert alert-info">
+                        <span class="bi bi-info-circle"></span>
+                        <strong>Note:</strong> Editing name and email will be added in a future version.
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.LoadAsync();
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandlePasswordChangeSubmit()
+    {
+        await ViewModel.ChangePasswordAsync();
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
+    }
+}

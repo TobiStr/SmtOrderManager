@@ -1,123 +1,127 @@
 @page "/boards/create"
-@using SmtOrderManager.Application.Features.Boards.Commands.CreateOrUpdateBoard
-@using SmtOrderManager.Domain.Entities
-@inject IMediator Mediator
-@inject NavigationManager Navigation
+@using SmtOrderManager.Presentation.ViewModels
+@using System.ComponentModel.DataAnnotations
+@inject BoardCreateViewModel ViewModel
+@implements IDisposable
 
-<PageTitle>Neues Board erstellen</PageTitle>
+<PageTitle>New Board - SMT Order Manager</PageTitle>
 
 <div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h2>Neues Board erstellen</h2>
-        </div>
-        <div class="card-body">
-            <ErrorAlert ErrorMessage="@errorMessage" />
-
-            <EditForm Model="@this" OnValidSubmit="CreateBoard">
-                <div class="mb-3">
-                    <label class="form-label">Name *</label>
-                    <input type="text" class="form-control" @bind="boardName" placeholder="z.B. Arduino Uno Shield v2" required />
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>
+                        <span class="bi bi-plus-circle"></span> Create New Board
+                    </h4>
                 </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+                    {
+                        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+                    }
 
-                <div class="mb-3">
-                    <label class="form-label">Beschreibung *</label>
-                    <textarea class="form-control" @bind="boardDescription" rows="3" placeholder="Beschreibung des Boards..." required></textarea>
-                </div>
+                    <EditForm Model="@ViewModel" OnValidSubmit="HandleValidSubmit" FormName="CreateBoardForm">
+                        <DataAnnotationsValidator />
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Länge (mm) *</label>
-                        <input type="number" step="0.1" class="form-control" @bind="boardLength" min="0.1" required />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Breite (mm) *</label>
-                        <input type="number" step="0.1" class="form-control" @bind="boardWidth" min="0.1" required />
-                    </div>
-                </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name *</label>
+                            <InputText id="name"
+                                       class="form-control"
+                                       @bind-Value="ViewModel.Name"
+                                       placeholder="e.g., Arduino Uno Shield v2"
+                                       disabled="@ViewModel.IsLoading" />
+                            <ValidationMessage For="@(() => ViewModel.Name)" class="text-danger" />
+                        </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Order ID (optional)</label>
-                    <input type="text" class="form-control" @bind="orderIdString" placeholder="GUID der Order (leer lassen für standalone)" />
-                    <small class="form-text text-muted">Wenn leer, wird das Board ohne Order erstellt.</small>
-                </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <InputTextArea id="description"
+                                           class="form-control"
+                                           @bind-Value="ViewModel.Description"
+                                           rows="3"
+                                           placeholder="Board description..."
+                                           disabled="@ViewModel.IsLoading" />
+                            <ValidationMessage For="@(() => ViewModel.Description)" class="text-danger" />
+                        </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
-                        @if (isLoading)
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="length" class="form-label">Length (mm) *</label>
+                                <InputNumber id="length"
+                                             class="form-control"
+                                             @bind-Value="ViewModel.Length"
+                                             disabled="@ViewModel.IsLoading" />
+                                <ValidationMessage For="@(() => ViewModel.Length)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="width" class="form-label">Width (mm) *</label>
+                                <InputNumber id="width"
+                                             class="form-control"
+                                             @bind-Value="ViewModel.Width"
+                                             disabled="@ViewModel.IsLoading" />
+                                <ValidationMessage For="@(() => ViewModel.Width)" class="text-danger" />
+                            </div>
+                        </div>
+
+                        @if (ViewModel.Length > 0 && ViewModel.Width > 0)
                         {
-                            <span>Erstelle...</span>
+                            <div class="alert alert-info">
+                                <span class="bi bi-calculator"></span>
+                                <strong>Area:</strong> @((ViewModel.Length * ViewModel.Width / 100).ToString("F2")) cm² (@(ViewModel.Length * ViewModel.Width) mm²)
+                            </div>
                         }
-                        else
-                        {
-                            <span>Board erstellen</span>
-                        }
-                    </button>
-                    <a href="/boards" class="btn btn-secondary">Abbrechen</a>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/boards" class="btn btn-secondary" disabled="@ViewModel.IsLoading">
+                                <span class="bi bi-x-circle"></span> Cancel
+                            </a>
+                            <button type="submit"
+                                    class="btn btn-primary"
+                                    disabled="@ViewModel.IsLoading">
+                                @if (ViewModel.IsLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <text>Creating board...</text>
+                                }
+                                else
+                                {
+                                    <span class="bi bi-check-circle"></span>
+                                    <text> Create Board</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
-            </EditForm>
+            </div>
+
+            <div class="mt-3">
+                <a href="/boards" class="text-decoration-none">
+                    <span class="bi bi-arrow-left"></span> Back to Board List
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    private string boardName = string.Empty;
-    private string boardDescription = string.Empty;
-    private decimal boardLength = 100;
-    private decimal boardWidth = 80;
-    private string orderIdString = string.Empty;
-    private bool isLoading;
-    private string? errorMessage;
-
-    private async Task CreateBoard()
+    protected override void OnInitialized()
     {
-        isLoading = true;
-        errorMessage = null;
+        ViewModel.StateChanged += OnViewModelStateChanged;
+    }
 
-        try
-        {
-            // Parse OrderId if provided
-            Guid? orderId = null;
-            if (!string.IsNullOrWhiteSpace(orderIdString) && Guid.TryParse(orderIdString, out var parsedOrderId))
-            {
-                orderId = parsedOrderId;
-            }
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
 
-            // Create Board entity
-            var newBoard = new Board
-            {
-                Id = Guid.NewGuid(),
-                Name = boardName,
-                Description = boardDescription,
-                Length = boardLength,
-                Width = boardWidth,
-                OrderId = orderId ?? Guid.Empty, // Use Empty if no order
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = null,
-                ComponentIds = new List<Guid>(),
-                Components = new List<Component>()
-            };
+    private async Task HandleValidSubmit()
+    {
+        await ViewModel.CreateAsync();
+    }
 
-            var command = new CreateOrUpdateBoardCommand(newBoard);
-            var result = await Mediator.Send(command);
-
-            if (result.Success)
-            {
-                // Navigate to the board detail page
-                Navigation.NavigateTo($"/boards/{newBoard.Id}");
-            }
-            else
-            {
-                errorMessage = result.GetError().Message ?? "Fehler beim Erstellen des Boards";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Fehler: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
     }
 }

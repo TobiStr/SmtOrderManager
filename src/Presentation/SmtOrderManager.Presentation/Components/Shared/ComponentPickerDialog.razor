@@ -1,0 +1,225 @@
+@using SmtOrderManager.Presentation.Models.DTOs
+@using SmtOrderManager.Application.Features.Components.Queries.GetAllComponents
+@using SmtOrderManager.Domain.Entities
+@using MediatR
+@inject IMediator Mediator
+
+<!-- Modal Dialog -->
+<div class="modal @(IsVisible ? "show d-block" : "")" tabindex="-1" role="dialog" style="@(IsVisible ? "background-color: rgba(0,0,0,0.5);" : "")">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Component auswählen</h5>
+                <button type="button" class="btn-close" @onclick="Cancel"></button>
+            </div>
+            <div class="modal-body">
+                @if (isLoading)
+                {
+                    <LoadingSpinner Message="Components werden geladen..." />
+                }
+                else if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <ErrorAlert ErrorMessage="@errorMessage" />
+                }
+                else
+                {
+                    <!-- Suchfeld -->
+                    <div class="mb-3">
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Component suchen..."
+                               @bind="searchTerm"
+                               @bind:event="oninput"
+                               @onkeyup="ApplyFilter" />
+                    </div>
+
+                    <!-- Component-Liste -->
+                    <div class="list-group mb-3" style="max-height: 300px; overflow-y: auto;">
+                        @foreach (var component in filteredComponents)
+                        {
+                            <button type="button"
+                                    class="list-group-item list-group-item-action @(selectedComponent?.Id == component.Id ? "active" : "")"
+                                    @onclick="@(() => SelectComponent(component))">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">@component.Name</h6>
+                                        <small>@component.Description</small>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(component.ImageUrl))
+                                    {
+                                        <img src="@component.ImageUrl" alt="@component.Name" class="img-thumbnail" style="max-width: 40px; max-height: 40px;" />
+                                    }
+                                </div>
+                            </button>
+                        }
+
+                        @if (!filteredComponents.Any())
+                        {
+                            <div class="alert alert-info">
+                                Keine Components gefunden.
+                            </div>
+                        }
+                    </div>
+
+                    @if (selectedComponent != null)
+                    {
+                        <!-- Quantity & Reference Eingabe -->
+                        <div class="border rounded p-3 bg-light">
+                            <h6>Ausgewählt: @selectedComponent.Name</h6>
+
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">Anzahl</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           min="1"
+                                           @bind="quantity" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Referenz (optional)</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           placeholder="z.B. R1, C5"
+                                           @bind="reference" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Kommentar (optional)</label>
+                                    <input type="text"
+                                           class="form-control"
+                                           placeholder="Notizen..."
+                                           @bind="comment" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Abbrechen</button>
+                <button type="button"
+                        class="btn btn-primary"
+                        disabled="@(selectedComponent == null || isLoading)"
+                        @onclick="Confirm">
+                    Component hinzufügen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<ComponentSelectionResult> OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private List<Component> allComponents = new();
+    private List<Component> filteredComponents = new();
+    private Component? selectedComponent;
+    private string? searchTerm;
+    private int quantity = 1;
+    private string? reference;
+    private string? comment;
+    private bool isLoading;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && !allComponents.Any())
+        {
+            await LoadComponentsAsync();
+        }
+    }
+
+    private async Task LoadComponentsAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var query = new GetAllComponentsQuery();
+            var result = await Mediator.Send(query);
+
+            if (result.Success)
+            {
+                var components = result.GetOk();
+                allComponents = components.ToList(); // Direkt Domain-Entities
+                filteredComponents = allComponents;
+            }
+            else
+            {
+                errorMessage = result.GetError().Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Fehler: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SelectComponent(Component component)
+    {
+        selectedComponent = component;
+        quantity = component.Quantity; // Domain-Entity hat Quantity statt DefaultQuantity
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredComponents = allComponents;
+        }
+        else
+        {
+            var search = searchTerm.ToLowerInvariant();
+            filteredComponents = allComponents.Where(c =>
+                c.Name.ToLowerInvariant().Contains(search) ||
+                c.Description.ToLowerInvariant().Contains(search)
+            ).ToList();
+        }
+    }
+
+    private async Task Confirm()
+    {
+        if (selectedComponent == null) return;
+
+        var result = new ComponentSelectionResult
+        {
+            ComponentId = selectedComponent.Id,
+            ComponentName = selectedComponent.Name,
+            Quantity = quantity,
+            Reference = reference,
+            Comment = comment
+        };
+
+        await OnConfirm.InvokeAsync(result);
+
+        // Reset
+        selectedComponent = null;
+        quantity = 1;
+        reference = null;
+        comment = null;
+        searchTerm = null;
+    }
+
+    private async Task Cancel()
+    {
+        // Reset
+        selectedComponent = null;
+        quantity = 1;
+        reference = null;
+        comment = null;
+        searchTerm = null;
+
+        await OnCancel.InvokeAsync();
+    }
+}

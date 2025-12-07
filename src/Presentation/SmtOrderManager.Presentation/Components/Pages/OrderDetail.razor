@@ -1,0 +1,282 @@
+@page "/orders/{OrderId:guid}"
+@using SmtOrderManager.Presentation.ViewModels
+@using SmtOrderManager.Domain.Entities
+@using SmtOrderManager.Domain.Enums
+@inject OrderDetailViewModel ViewModel
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>@(ViewModel.Order != null ? $"Order {ViewModel.Order.OrderDate:yyyy-MM-dd}" : "Order Details") - SMT Order Manager</PageTitle>
+
+<div class="container-fluid mt-4">
+    @if (ViewModel.IsLoading && ViewModel.Order == null)
+    {
+        <LoadingSpinner Message="Order wird geladen..." />
+    }
+    else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage) && ViewModel.Order == null)
+    {
+        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+        <a href="/orders" class="btn btn-secondary mt-3">
+            <span class="bi bi-arrow-left"></span> Zurück zur Übersicht
+        </a>
+    }
+    else if (ViewModel.Order != null)
+    {
+        <!-- Order Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/orders">Orders</a></li>
+                        <li class="breadcrumb-item active">Order vom @ViewModel.Order.OrderDate.ToString("dd.MM.yyyy")</li>
+                    </ol>
+                </nav>
+                <div class="d-flex align-items-center gap-3">
+                    <h2>📦 Order vom @ViewModel.Order.OrderDate.ToString("dd.MM.yyyy")</h2>
+                    <OrderStatusBadge Status="@ViewModel.Order.Status" />
+                </div>
+                <p class="text-muted">@ViewModel.Order.Description</p>
+            </div>
+            <div class="col-auto">
+                @if (ViewModel.CanSubmit(ViewModel.Order))
+                {
+                    <button class="btn btn-primary me-2" @onclick="OnSubmitOrderClickedAsync" disabled="@ViewModel.IsLoading">
+                        <span class="bi bi-send"></span> Order einreichen
+                    </button>
+                }
+                @if (ViewModel.CanCancel(ViewModel.Order))
+                {
+                    <button class="btn btn-warning me-2" @onclick="OnCancelOrderClickedAsync" disabled="@ViewModel.IsLoading">
+                        <span class="bi bi-x-circle"></span> Stornieren
+                    </button>
+                }
+                <button class="btn btn-outline-danger" @onclick="OnDeleteOrderClickedAsync" disabled="@ViewModel.IsLoading">
+                    <span class="bi bi-trash"></span> Löschen
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+        {
+            <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ViewModel.SuccessMessage))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <span class="bi bi-check-circle"></span> @ViewModel.SuccessMessage
+                <button type="button" class="btn-close" @onclick="@(() => StateHasChanged())"></button>
+            </div>
+        }
+
+        <!-- Order Info Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Status</h6>
+                        <p class="card-text">
+                            <OrderStatusBadge Status="@ViewModel.Order.Status" />
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Boards</h6>
+                        <p class="card-text">
+                            <strong>@ViewModel.GetBoardCount(ViewModel.Order)</strong> Board(s)
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Components</h6>
+                        <p class="card-text">
+                            <strong>@ViewModel.GetTotalComponents(ViewModel.Order)</strong> Component(s) gesamt
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Erstellt</h6>
+                        <p class="card-text">
+                            @ViewModel.Order.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boards Section -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Boards in dieser Order</h5>
+                @if (ViewModel.IsEditable(ViewModel.Order))
+                {
+                    <button class="btn btn-primary btn-sm"
+                            @onclick="@(() => ViewModel.OpenBoardPicker())"
+                            disabled="@ViewModel.IsLoading">
+                        <span class="bi bi-plus-circle"></span> Board hinzufügen
+                    </button>
+                }
+            </div>
+            <div class="card-body">
+                @if (ViewModel.IsLoading)
+                {
+                    <LoadingSpinner Message="Boards werden aktualisiert..." />
+                }
+                else if (!ViewModel.Order.Boards.Any())
+                {
+                    <div class="alert alert-info">
+                        <span class="bi bi-info-circle"></span>
+                        Noch keine Boards in dieser Order. Fügen Sie Boards hinzu, um mit der Produktion zu beginnen.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Beschreibung</th>
+                                    <th>Abmessungen</th>
+                                    <th>Components</th>
+                                    <th class="text-end">Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var board in ViewModel.Order.Boards)
+                                {
+                                    <tr>
+                                        <td><strong>@board.Name</strong></td>
+                                        <td>@board.Description</td>
+                                        <td>@board.Length × @board.Width mm</td>
+                                        <td>@board.Components.Count</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary"
+                                                    @onclick="@(() => ViewModel.NavigateToBoard(board.Id))"
+                                                    title="Details anzeigen">
+                                                <span class="bi bi-eye"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Board Picker Dialog (Simple Version) -->
+@if (ViewModel.ShowBoardPicker)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Board hinzufügen</h5>
+                    <button type="button" class="btn-close" @onclick="@(() => ViewModel.CloseBoardPicker())"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Board-Auswahl wird in der nächsten Version implementiert.</p>
+                    <p class="text-muted">Bitte erstellen Sie zunächst ein Board unter "Boards" und ordnen Sie es dann dieser Order zu.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="@(() => ViewModel.CloseBoardPicker())">Schließen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Confirm Dialog -->
+<ConfirmDialog @ref="confirmDialog" />
+
+@code {
+    [Parameter]
+    public Guid OrderId { get; set; }
+
+    private ConfirmDialog? confirmDialog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.LoadAsync(OrderId);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OrderId != ViewModel.Order?.Id)
+        {
+            await ViewModel.LoadAsync(OrderId);
+        }
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnSubmitOrderClickedAsync()
+    {
+        if (confirmDialog != null && ViewModel.Order != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Order einreichen",
+                $"Möchten Sie die Order vom {ViewModel.Order.OrderDate:dd.MM.yyyy} wirklich einreichen? Nach dem Einreichen kann die Order nicht mehr bearbeitet werden."
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.SubmitOrderAsync();
+            }
+        }
+    }
+
+    private async Task OnCancelOrderClickedAsync()
+    {
+        if (confirmDialog != null && ViewModel.Order != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Order stornieren",
+                $"Möchten Sie die Order vom {ViewModel.Order.OrderDate:dd.MM.yyyy} wirklich stornieren?"
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.CancelOrderAsync();
+            }
+        }
+    }
+
+    private async Task OnDeleteOrderClickedAsync()
+    {
+        if (confirmDialog != null && ViewModel.Order != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Order löschen",
+                $"Möchten Sie die Order vom {ViewModel.Order.OrderDate:dd.MM.yyyy} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.DeleteOrderAsync();
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
+    }
+}

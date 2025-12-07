@@ -17,6 +17,16 @@ builder.Services.AddRazorComponents()
 // HTTP Context Accessor (for ICurrentUserService)
 builder.Services.AddHttpContextAccessor();
 
+// Authentication & Authorization
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+
+// Custom Authentication State Provider (simple, self-built auth)
+builder.Services.AddScoped<SmtOrderManager.Presentation.Services.CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider>(
+    sp => sp.GetRequiredService<SmtOrderManager.Presentation.Services.CustomAuthenticationStateProvider>());
+
 // MediatR (Application Layer)
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
@@ -40,9 +50,30 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 // Services
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+// Blob Storage (Local File System)
+builder.Services.Configure<SmtOrderManager.Infrastructure.BlobStorage.LocalBlobStorageOptions>(
+    builder.Configuration.GetSection("LocalBlobStorage"));
+builder.Services.AddScoped<SmtOrderManager.Domain.Services.IBlobStorageService,
+    SmtOrderManager.Infrastructure.BlobStorage.LocalBlobStorageService>();
+
 // Password Hasher (for User authentication)
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<SmtOrderManager.Domain.Entities.User>,
     Microsoft.AspNetCore.Identity.PasswordHasher<SmtOrderManager.Domain.Entities.User>>();
+
+// ViewModels (MVVM Pattern)
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.LoginViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.RegisterViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.ComponentListViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.ComponentDetailViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.ComponentCreateViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.BoardListViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.BoardDetailViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.BoardCreateViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.OrderListViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.OrderDetailViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.OrderCreateViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.UserProfileViewModel>();
+builder.Services.AddScoped<SmtOrderManager.Presentation.ViewModels.HomeViewModel>();
 
 var app = builder.Build();
 

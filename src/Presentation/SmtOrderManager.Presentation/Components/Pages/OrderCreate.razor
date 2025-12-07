@@ -1,119 +1,103 @@
 @page "/orders/create"
-@using SmtOrderManager.Application.Features.Orders.Commands.CreateOrUpdateOrder
-@using SmtOrderManager.Domain.Entities
-@using SmtOrderManager.Domain.Enums
-@inject IMediator Mediator
-@inject NavigationManager Navigation
+@using SmtOrderManager.Presentation.ViewModels
+@using System.ComponentModel.DataAnnotations
+@inject OrderCreateViewModel ViewModel
+@implements IDisposable
 
-<PageTitle>Neue Order erstellen</PageTitle>
+<PageTitle>New Order - SMT Order Manager</PageTitle>
 
 <div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h2>Neue Order erstellen</h2>
-        </div>
-        <div class="card-body">
-            <ErrorAlert ErrorMessage="@errorMessage" />
-
-            <EditForm Model="@this" OnValidSubmit="CreateOrder">
-                <div class="mb-3">
-                    <label class="form-label">Beschreibung *</label>
-                    <textarea class="form-control" @bind="orderDescription" rows="3" placeholder="z.B. Prototypen-Serie Q1 2026" required></textarea>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>
+                        <span class="bi bi-plus-circle"></span> Create New Order
+                    </h4>
                 </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+                    {
+                        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+                    }
 
-                <div class="mb-3">
-                    <label class="form-label">Bestelldatum *</label>
-                    <input type="date" class="form-control" @bind="orderDate" required />
-                </div>
+                    <EditForm Model="@ViewModel" OnValidSubmit="HandleValidSubmit" FormName="CreateOrderForm">
+                        <DataAnnotationsValidator />
 
-                <div class="mb-3">
-                    <label class="form-label">User ID (optional - für Testing)</label>
-                    <input type="text" class="form-control" @bind="userIdString" placeholder="GUID des Users (leer = Test-User)" />
-                    <small class="form-text text-muted">Wenn leer, wird eine Test-User-ID verwendet.</small>
-                </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <InputTextArea id="description"
+                                           class="form-control"
+                                           @bind-Value="ViewModel.Description"
+                                           rows="3"
+                                           placeholder="e.g., Prototype Series Q1 2026"
+                                           disabled="@ViewModel.IsLoading" />
+                            <ValidationMessage For="@(() => ViewModel.Description)" class="text-danger" />
+                        </div>
 
-                <div class="alert alert-info">
-                    <strong>Hinweis:</strong> Nach dem Erstellen kannst du Boards zur Order hinzufügen.
-                </div>
+                        <div class="mb-3">
+                            <label for="orderDate" class="form-label">Order Date *</label>
+                            <InputDate id="orderDate"
+                                       class="form-control"
+                                       @bind-Value="ViewModel.OrderDate"
+                                       disabled="@ViewModel.IsLoading" />
+                        </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
-                        @if (isLoading)
-                        {
-                            <span>Erstelle...</span>
-                        }
-                        else
-                        {
-                            <span>Order erstellen</span>
-                        }
-                    </button>
-                    <a href="/orders" class="btn btn-secondary">Abbrechen</a>
+                        <div class="alert alert-info">
+                            <span class="bi bi-info-circle"></span>
+                            <strong>Note:</strong> After creating the order, you can add boards to it.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/orders" class="btn btn-secondary" disabled="@ViewModel.IsLoading">
+                                <span class="bi bi-x-circle"></span> Cancel
+                            </a>
+                            <button type="submit"
+                                    class="btn btn-primary"
+                                    disabled="@ViewModel.IsLoading">
+                                @if (ViewModel.IsLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <text>Creating order...</text>
+                                }
+                                else
+                                {
+                                    <span class="bi bi-check-circle"></span>
+                                    <text> Create Order</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
-            </EditForm>
+            </div>
+
+            <div class="mt-3">
+                <a href="/orders" class="text-decoration-none">
+                    <span class="bi bi-arrow-left"></span> Back to Order List
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    private string orderDescription = string.Empty;
-    private DateTime orderDate = DateTime.Today;
-    private string userIdString = string.Empty;
-    private bool isLoading;
-    private string? errorMessage;
-
-    private async Task CreateOrder()
+    protected override void OnInitialized()
     {
-        isLoading = true;
-        errorMessage = null;
+        ViewModel.StateChanged += OnViewModelStateChanged;
+    }
 
-        try
-        {
-            // Parse UserId if provided, otherwise use a test GUID
-            Guid userId;
-            if (!string.IsNullOrWhiteSpace(userIdString) && Guid.TryParse(userIdString, out var parsedUserId))
-            {
-                userId = parsedUserId;
-            }
-            else
-            {
-                // Create a test user ID (in production, this should come from authentication)
-                userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-            }
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
 
-            // Create Order entity
-            var newOrder = new Order
-            {
-                Id = Guid.NewGuid(),
-                Description = orderDescription,
-                OrderDate = orderDate,
-                Status = OrderStatus.Draft,
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = null,
-                BoardIds = new List<Guid>(),
-                Boards = new List<Board>()
-            };
+    private async Task HandleValidSubmit()
+    {
+        await ViewModel.CreateAsync();
+    }
 
-            var command = new CreateOrUpdateOrderCommand(newOrder);
-            var result = await Mediator.Send(command);
-
-            if (result.Success)
-            {
-                // Navigate to orders list (we don't have OrderDetail yet)
-                Navigation.NavigateTo("/orders");
-            }
-            else
-            {
-                errorMessage = result.GetError().Message ?? "Fehler beim Erstellen der Order";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Fehler: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
     }
 }
