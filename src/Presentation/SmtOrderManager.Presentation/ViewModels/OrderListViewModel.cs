@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using SmtOrderManager.Application.Features.Orders.Queries.GetAllOrders;
 using SmtOrderManager.Domain.Entities;
 using SmtOrderManager.Domain.Enums;
@@ -13,11 +15,16 @@ public class OrderListViewModel
 {
     private readonly IMediator _mediator;
     private readonly NavigationManager _navigationManager;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-    public OrderListViewModel(IMediator mediator, NavigationManager navigationManager)
+    public OrderListViewModel(
+        IMediator mediator,
+        NavigationManager navigationManager,
+        AuthenticationStateProvider authenticationStateProvider)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _navigationManager = navigationManager ?? throw new ArgumentNullException(nameof(navigationManager));
+        _authenticationStateProvider = authenticationStateProvider ?? throw new ArgumentNullException(nameof(authenticationStateProvider));
     }
 
     // Properties - Direkt Domain-Entities
@@ -54,7 +61,8 @@ public class OrderListViewModel
 
         try
         {
-            var query = new GetAllOrdersQuery();
+            var userId = await GetCurrentUserIdAsync();
+            var query = new GetAllOrdersQuery(userId);
             var result = await _mediator.Send(query);
 
             if (result.Success)
@@ -170,5 +178,13 @@ public class OrderListViewModel
     private void NotifyStateChanged()
     {
         StateChanged?.Invoke();
+    }
+
+    private async Task<Guid?> GetCurrentUserIdAsync()
+    {
+        var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = state.User;
+        var idValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(idValue, out var userId) ? userId : null;
     }
 }

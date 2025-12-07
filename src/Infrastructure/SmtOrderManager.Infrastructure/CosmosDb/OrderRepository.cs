@@ -237,4 +237,118 @@ public class OrderRepository : IOrderRepository
             Boards = Array.Empty<Board>()
         };
     }
+
+    public async Task<Result<IEnumerable<Order>>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetAllAsync started for orders");
+        }
+
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c");
+            var iterator = _container.GetItemQueryIterator<Order>(query);
+            var orders = new List<Order>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync(cancellationToken);
+                orders.AddRange(response);
+            }
+
+            var populatedOrders = new List<Order>();
+            foreach (var order in orders)
+            {
+                if (order.BoardIds.Any())
+                {
+                    var boardIds = order.BoardIds.Select(b => b.Id);
+                    var boardsResult = await _boardRepository.GetByIdsAsync(boardIds, cancellationToken);
+                    if (boardsResult.Success)
+                    {
+                        var boards = boardsResult.GetOk();
+                        populatedOrders.Add(order with { Boards = boards.ToList() });
+                    }
+                    else
+                    {
+                        populatedOrders.Add(order);
+                    }
+                }
+                else
+                {
+                    populatedOrders.Add(order);
+                }
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetAllAsync completed. Found {Count} orders", populatedOrders.Count);
+            }
+
+            return populatedOrders;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all orders");
+            return ex;
+        }
+    }
+
+    public async Task<Result<IEnumerable<Order>>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetByUserIdAsync started for User ID: {UserId}", userId);
+        }
+
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.userId = @userId")
+                .WithParameter("@userId", userId.ToString());
+
+            var iterator = _container.GetItemQueryIterator<Order>(query);
+            var orders = new List<Order>();
+
+            while (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync(cancellationToken);
+                orders.AddRange(response);
+            }
+
+            var populatedOrders = new List<Order>();
+            foreach (var order in orders)
+            {
+                if (order.BoardIds.Any())
+                {
+                    var boardIds = order.BoardIds.Select(b => b.Id);
+                    var boardsResult = await _boardRepository.GetByIdsAsync(boardIds, cancellationToken);
+                    if (boardsResult.Success)
+                    {
+                        var boards = boardsResult.GetOk();
+                        populatedOrders.Add(order with { Boards = boards.ToList() });
+                    }
+                    else
+                    {
+                        populatedOrders.Add(order);
+                    }
+                }
+                else
+                {
+                    populatedOrders.Add(order);
+                }
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("GetByUserIdAsync completed. Found {Count} orders for user", populatedOrders.Count);
+            }
+
+            return populatedOrders;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving orders for User ID: {UserId}", userId);
+            return ex;
+        }
+    }
 }
