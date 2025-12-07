@@ -48,7 +48,8 @@ public class BoardRepository : IBoardRepository
             // Load components by IDs
             if (board.ComponentIds.Any())
             {
-                var componentsResult = await _componentRepository.GetByIdsAsync(board.ComponentIds, cancellationToken);
+                var componentIds = board.ComponentIds.Select(c => c.Id);
+                var componentsResult = await _componentRepository.GetByIdsAsync(componentIds, cancellationToken);
                 if (componentsResult.Success)
                 {
                     var components = componentsResult.GetOk();
@@ -125,7 +126,8 @@ public class BoardRepository : IBoardRepository
             {
                 if (board.ComponentIds.Any())
                 {
-                    var componentsResult = await _componentRepository.GetByIdsAsync(board.ComponentIds, cancellationToken);
+                    var componentIds = board.ComponentIds.Select(c => c.Id);
+                    var componentsResult = await _componentRepository.GetByIdsAsync(componentIds, cancellationToken);
                     if (componentsResult.Success)
                     {
                         var components = componentsResult.GetOk();
@@ -186,14 +188,15 @@ public class BoardRepository : IBoardRepository
             var board = boards.First();
 
             // Load components by IDs
-            if (board.ComponentIds.Any())
-            {
-                var componentsResult = await _componentRepository.GetByIdsAsync(board.ComponentIds, cancellationToken);
-                if (componentsResult.Success)
+                if (board.ComponentIds.Any())
                 {
-                    var components = componentsResult.GetOk();
-                    board = board with { Components = components.ToList() };
-                }
+                    var componentIds = board.ComponentIds.Select(c => c.Id);
+                    var componentsResult = await _componentRepository.GetByIdsAsync(componentIds, cancellationToken);
+                    if (componentsResult.Success)
+                    {
+                        var components = componentsResult.GetOk();
+                        board = board with { Components = components.ToList() };
+                    }
             }
 
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -235,7 +238,8 @@ public class BoardRepository : IBoardRepository
             {
                 if (board.ComponentIds.Any())
                 {
-                    var componentsResult = await _componentRepository.GetByIdsAsync(board.ComponentIds, cancellationToken);
+                    var componentIds = board.ComponentIds.Select(c => c.Id);
+                    var componentsResult = await _componentRepository.GetByIdsAsync(componentIds, cancellationToken);
                     if (componentsResult.Success)
                     {
                         var components = componentsResult.GetOk();
@@ -346,19 +350,8 @@ public class BoardRepository : IBoardRepository
 
     private static Board PrepareForPersistence(Board board)
     {
-        var componentIds = new List<Guid>(board.ComponentIds);
-
-        foreach (var component in board.Components)
-        {
-            if (!componentIds.Contains(component.Id))
-            {
-                componentIds.Add(component.Id);
-            }
-        }
-
         return board with
         {
-            ComponentIds = componentIds,
             Components = Array.Empty<Component>()
         };
     }

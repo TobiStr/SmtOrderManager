@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SmtOrderManager.Domain.Entities;
+using SmtOrderManager.Domain.Primitives;
 using SmtOrderManager.Domain.Repositories;
 using SmtOrderManager.Infrastructure.CosmosDb;
 using SmtOrderManager.Tests.Application.TestHelpers;
@@ -25,14 +26,15 @@ public class BoardRepositoryTests
     [Fact]
     public async Task GetByIdAsync_ReturnsBoard_WithComponents()
     {
+        var componentId = Guid.NewGuid();
         var board = Board.Create("B1", "desc", 10, 5) with
         {
-            ComponentIds = new List<Guid> { Guid.NewGuid() }
+            ComponentIds = new List<QuantizedId> { new(componentId, 5) }
         };
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
 
         var componentRepoMock = new Mock<IComponentRepository>();
-        componentRepoMock.Setup(r => r.GetByIdsAsync(board.ComponentIds, It.IsAny<CancellationToken>()))
+        componentRepoMock.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IEnumerable<Component>>.Ok(new[] { component }));
 
         var (repo, containerMock) = CreateRepository(componentRepoMock.Object);
@@ -55,7 +57,7 @@ public class BoardRepositoryTests
     public async Task AddOrUpdateAsync_UpsertsBoard()
     {
         var board = Board.Create("B1", "desc", 10, 5);
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         board = board with { Components = new List<Component> { component } };
 
         var componentRepoMock = new Mock<IComponentRepository>();

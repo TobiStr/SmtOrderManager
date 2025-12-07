@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SmtOrderManager.Domain.Entities;
+using SmtOrderManager.Infrastructure.BlobStorage;
 using SmtOrderManager.Infrastructure.CosmosDb;
 using SmtOrderManager.Tests.Application.TestHelpers;
 using System.Net;
@@ -24,7 +25,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task GetByIdAsync_ReturnsComponent_WhenFound()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         var (repo, containerMock) = CreateRepository();
 
         containerMock
@@ -63,7 +64,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task AddOrUpdateAsync_Upserts_Component()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         var (repo, containerMock) = CreateRepository();
 
         containerMock
@@ -87,7 +88,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task GetByIdsAsync_ReturnsList_WhenFound()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         var feedResponse = CosmosTestHelpers.CreateFeedResponse(new[] { component });
         var feedIterator = CosmosTestHelpers.CreateFeedIterator(feedResponse);
 
@@ -139,7 +140,7 @@ public class ComponentRepositoryTests
 
         var loggerFactory = TestLoggerFactory.Create();
         var logger = loggerFactory.CreateLogger<ComponentRepository>();
-        var repo = new ComponentRepository(clientMock.Object, Options.Create(_options), logger);
+        var repo = new ComponentRepository(clientMock.Object, Options.Create(_options), Options.Create(new ImageUrlOptions()), logger);
 
         return (repo, containerMock);
     }

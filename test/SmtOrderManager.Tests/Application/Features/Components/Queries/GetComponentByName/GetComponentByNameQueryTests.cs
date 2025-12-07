@@ -11,7 +11,7 @@ public class GetComponentByNameQueryTests
     [Fact]
     public async Task Handle_ReturnsComponent()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
 
         var repoMock = new Mock<IComponentRepository>();
         repoMock.Setup(r => r.GetByNameAsync(component.Name, It.IsAny<CancellationToken>()))

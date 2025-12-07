@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using SmtOrderManager.Application.Features.Orders.Commands.CreateOrUpdateOrder;
 using SmtOrderManager.Domain.Entities;
 
@@ -10,16 +12,21 @@ public class OrderCreateViewModel
 {
     private readonly IMediator _mediator;
     private readonly NavigationManager _navigationManager;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-    public OrderCreateViewModel(IMediator mediator, NavigationManager navigationManager)
+    public OrderCreateViewModel(
+        IMediator mediator,
+        NavigationManager navigationManager,
+        AuthenticationStateProvider authenticationStateProvider)
     {
         _mediator = mediator;
         _navigationManager = navigationManager;
+        _authenticationStateProvider = authenticationStateProvider;
     }
 
     [Required] public string Description { get; set; } = string.Empty;
     public DateTime OrderDate { get; set; } = DateTime.Today;
-    public Guid UserId { get; set; } = Guid.Parse("00000000-0000-0000-0000-000000000001"); // TODO: Get from ICurrentUserService
+    public Guid UserId { get; private set; }
 
     public bool IsLoading { get; private set; }
     public string? ErrorMessage { get; private set; }
@@ -28,6 +35,7 @@ public class OrderCreateViewModel
 
     public async Task CreateAsync()
     {
+        await EnsureUserIdAsync();
         IsLoading = true;
         ErrorMessage = null;
         NotifyStateChanged();
@@ -56,6 +64,26 @@ public class OrderCreateViewModel
         {
             IsLoading = false;
             NotifyStateChanged();
+        }
+    }
+
+    private async Task EnsureUserIdAsync()
+    {
+        if (UserId != Guid.Empty)
+        {
+            return;
+        }
+
+        var state = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = state.User;
+        var idValue = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(idValue, out var userId))
+        {
+            UserId = userId;
+        }
+        else
+        {
+            throw new InvalidOperationException("Cannot determine current user ID for order creation.");
         }
     }
 

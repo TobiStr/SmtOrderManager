@@ -73,6 +73,18 @@ app.MapPost("/auth/login", async (
     return Results.Ok(userDto);
 }).AllowAnonymous().DisableAntiforgery();
 
+app.MapPost("/auth/logout", async (HttpContext httpContext) =>
+{
+    await httpContext.SignOutAsync(CustomAuthenticationStateProvider.Scheme);
+    return Results.Ok();
+}).AllowAnonymous().DisableAntiforgery();
+
+app.MapGet("/auth/logout", async (HttpContext httpContext) =>
+{
+    await httpContext.SignOutAsync(CustomAuthenticationStateProvider.Scheme);
+    return Results.Redirect("/login");
+}).AllowAnonymous().DisableAntiforgery();
+
 app.Run();
 
 internal sealed record LoginRequest(string Email, string Password, bool RememberMe);

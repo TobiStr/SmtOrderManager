@@ -14,9 +14,4 @@ public class BlobStorageOptions
     /// Gets or sets the container name for component images.
     /// </summary>
     public string ContainerName { get; set; } = "component-images";
-
-    /// <summary>
-    /// Optional SAS token that will be appended to generated blob URLs.
-    /// </summary>
-    public string? SasToken { get; set; }
 }

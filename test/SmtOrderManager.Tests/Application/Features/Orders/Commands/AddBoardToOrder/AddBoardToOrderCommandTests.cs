@@ -23,12 +23,12 @@ public class AddBoardToOrderCommandTests
         var logger = TestLoggerFactory.CreateLogger<AddBoardToOrderCommandHandler>();
         var handler = new AddBoardToOrderCommandHandler(repoMock.Object, logger);
 
-        var result = await handler.Handle(new AddBoardToOrderCommand(order.Id, boardId), CancellationToken.None);
+        var result = await handler.Handle(new AddBoardToOrderCommand(order.Id, boardId, 2), CancellationToken.None);
 
         Assert.True(result.Success);
         repoMock.Verify(r => r.GetByIdAsync(order.Id, It.IsAny<CancellationToken>()), Times.Once);
         repoMock.Verify(r => r.AddOrUpdateAsync(
-            It.Is<Order>(o => o.BoardIds.Contains(boardId)),
+            It.Is<Order>(o => o.BoardIds.Any(b => b.Id == boardId && b.Quantity == 2)),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

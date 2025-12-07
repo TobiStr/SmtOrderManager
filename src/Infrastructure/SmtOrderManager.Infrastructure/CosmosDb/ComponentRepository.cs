@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SmtOrderManager.Domain.Entities;
 using SmtOrderManager.Domain.Repositories;
+using SmtOrderManager.Infrastructure.BlobStorage;
 
 namespace SmtOrderManager.Infrastructure.CosmosDb;
 
@@ -13,15 +14,18 @@ public class ComponentRepository : IComponentRepository
 {
     private readonly Container _container;
     private readonly ILogger<ComponentRepository> _logger;
+    private readonly string? _sasToken;
 
     public ComponentRepository(
         CosmosClient cosmosClient,
         IOptions<CosmosDbOptions> options,
+        IOptions<ImageUrlOptions> imageUrlOptions,
         ILogger<ComponentRepository> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         var opts = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _sasToken = imageUrlOptions?.Value?.SasToken;
         var database = cosmosClient.GetDatabase(opts.DatabaseName);
         _container = database.GetContainer(opts.Containers.Components);
     }
@@ -45,7 +49,7 @@ public class ComponentRepository : IComponentRepository
                 _logger.LogDebug("GetByIdAsync completed successfully for Component ID: {ComponentId}", id);
             }
 
-            return response.Resource;
+            return AppendSasToken(response.Resource);
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -107,7 +111,7 @@ public class ComponentRepository : IComponentRepository
                 _logger.LogDebug("GetByIdsAsync completed. Found {Count} components", components.Count);
             }
 
-            return components;
+            return components.Select(AppendSasToken).ToList();
         }
         catch (Exception ex)
         {
@@ -148,7 +152,7 @@ public class ComponentRepository : IComponentRepository
                 _logger.LogDebug("GetByNameAsync completed successfully for Component name: {ComponentName}", name);
             }
 
-            return components.First();
+            return AppendSasToken(components.First());
         }
         catch (Exception ex)
         {
@@ -181,7 +185,7 @@ public class ComponentRepository : IComponentRepository
                 _logger.LogDebug("GetAllAsync completed. Found {Count} components", components.Count);
             }
 
-            return components;
+            return components.Select(AppendSasToken).ToList();
         }
         catch (Exception ex)
         {
@@ -269,5 +273,17 @@ public class ComponentRepository : IComponentRepository
             _logger.LogError(ex, "Error deleting Component with ID {ComponentId}", id);
             return ex;
         }
+    }
+
+    private Component AppendSasToken(Component component)
+    {
+        if (string.IsNullOrWhiteSpace(_sasToken) || string.IsNullOrWhiteSpace(component.ImageUrl))
+        {
+            return component;
+        }
+
+        var token = _sasToken.TrimStart('?');
+        var separator = component.ImageUrl.Contains("?", StringComparison.Ordinal) ? "&" : "?";
+        return component with { ImageUrl = $"{component.ImageUrl}{separator}{token}" };
     }
 }

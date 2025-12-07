@@ -149,7 +149,7 @@
                                     <th>Name</th>
                                     <th>Description</th>
                                     <th>Dimensions</th>
-                                    <th>Components</th>
+                                    <th>Quantity</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -160,13 +160,20 @@
                                         <td><strong>@board.Name</strong></td>
                                         <td>@board.Description</td>
                                         <td>@board.Length - @board.Width mm</td>
-                                        <td>@board.Components.Count</td>
+                                        <td>@ViewModel.GetQuantityForBoard(board.Id)</td>
                                         <td class="text-end">
-                                            <button class="btn btn-sm btn-outline-primary"
-                                                    @onclick="@(() => ViewModel.NavigateToBoard(board.Id))"
-                                                    title="View details">
-                                                <span class="bi bi-eye"></span>
-                                            </button>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary"
+                                                        @onclick="@(() => ViewModel.NavigateToBoard(board.Id))"
+                                                        title="View details">
+                                                    <span class="bi bi-eye"></span>
+                                                </button>
+                                                <button class="btn btn-outline-danger"
+                                                        @onclick="@(async () => await OnRemoveBoardAsync(board.Id))"
+                                                        title="Remove board">
+                                                    <span class="bi bi-trash"></span>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -189,8 +196,8 @@
                     <button type="button" class="btn-close" @onclick="@(() => ViewModel.CloseBoardPicker())"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted">Board selection will be added in the next iteration.</p>
-                    <p class="text-muted mb-0">Create a board under "Boards" first, then attach it here.</p>
+                    <BoardPicker OnBoardSelected="OnBoardSelectedAsync"
+                                 OnCancel="ViewModel.CloseBoardPicker" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="@(() => ViewModel.CloseBoardPicker())">Close</button>
@@ -225,6 +232,11 @@
     private void OnViewModelStateChanged()
     {
         InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnBoardSelectedAsync(BoardPicker.BoardSelectionResult selection)
+    {
+        await ViewModel.AddBoardToOrderAsync(selection.BoardId, selection.Quantity);
     }
 
     private async Task OnSubmitOrderClickedAsync()
@@ -271,6 +283,21 @@
             if (confirmed)
             {
                 await ViewModel.DeleteOrderAsync();
+            }
+        }
+    }
+
+    private async Task OnRemoveBoardAsync(Guid boardId)
+    {
+        if (confirmDialog != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Remove board",
+                "Remove this board from the order?");
+
+            if (confirmed)
+            {
+                await ViewModel.RemoveBoardAsync(boardId);
             }
         }
     }

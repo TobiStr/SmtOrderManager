@@ -5,7 +5,7 @@ using SmtOrderManager.Domain.Repositories;
 
 namespace SmtOrderManager.Application.Features.Orders.Queries.GetAllOrders;
 
-public record GetAllOrdersQuery : IRequest<Result<IEnumerable<Order>>>;
+public record GetAllOrdersQuery(Guid? UserId = null) : IRequest<Result<IEnumerable<Order>>>;
 
 public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Result<IEnumerable<Order>>>
 {
@@ -27,7 +27,9 @@ public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Resul
 
         try
         {
-            var result = await _orderRepository.GetByIdsAsync(Enumerable.Empty<Guid>(), cancellationToken);
+            Result<IEnumerable<Order>> result = request.UserId.HasValue
+                ? await _orderRepository.GetByUserIdAsync(request.UserId.Value, cancellationToken)
+                : await _orderRepository.GetAllAsync(cancellationToken);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {

@@ -5,7 +5,7 @@ using SmtOrderManager.Domain.Repositories;
 
 namespace SmtOrderManager.Application.Features.Orders.Commands.AddBoardToOrder;
 
-public record AddBoardToOrderCommand(Guid OrderId, Guid BoardId) : IRequest<Result<Order>>;
+public record AddBoardToOrderCommand(Guid OrderId, Guid BoardId, long Quantity) : IRequest<Result<Order>>;
 
 public class AddBoardToOrderCommandHandler : IRequestHandler<AddBoardToOrderCommand, Result<Order>>
 {
@@ -36,9 +36,16 @@ public class AddBoardToOrderCommandHandler : IRequestHandler<AddBoardToOrderComm
             }
 
             var order = orderResult.GetOk();
-            var updatedOrder = order.BoardIds.Contains(request.BoardId)
-                ? order
-                : order with { BoardIds = order.BoardIds.Concat(new[] { request.BoardId }).ToList() };
+            Order updatedOrder;
+
+            if (order.BoardIds.Any(b => b.Id == request.BoardId))
+            {
+                updatedOrder = order.UpdateBoardQuantity(request.BoardId, request.Quantity);
+            }
+            else
+            {
+                updatedOrder = order.AddBoard(request.BoardId, request.Quantity);
+            }
 
             var saveOrderResult = await _orderRepository.AddOrUpdateAsync(updatedOrder, cancellationToken);
             if (!saveOrderResult.Success)

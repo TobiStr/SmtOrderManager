@@ -6,6 +6,7 @@ using SmtOrderManager.Application.Features.Orders.Commands.DeleteOrder;
 using SmtOrderManager.Application.Features.Orders.Queries.GetOrderById;
 using SmtOrderManager.Domain.Entities;
 using SmtOrderManager.Domain.Enums;
+using SmtOrderManager.Presentation.Components.Shared;
 
 namespace SmtOrderManager.Presentation.ViewModels;
 
@@ -189,7 +190,7 @@ public class OrderDetailViewModel
     /// <summary>
     /// Board zur Order hinzufügen
     /// </summary>
-    public async Task AddBoardToOrderAsync(Guid boardId)
+    public async Task AddBoardToOrderAsync(Guid boardId, long quantity)
     {
         if (Order == null) return;
 
@@ -200,7 +201,7 @@ public class OrderDetailViewModel
 
         try
         {
-            var command = new AddBoardToOrderCommand(Order.Id, boardId);
+            var command = new AddBoardToOrderCommand(Order.Id, boardId, quantity);
             var result = await _mediator.Send(command);
 
             if (result.Success)
@@ -231,6 +232,41 @@ public class OrderDetailViewModel
     public void NavigateToBoard(Guid boardId)
     {
         _navigationManager.NavigateTo($"/boards/{boardId}");
+    }
+
+    public async Task RemoveBoardAsync(Guid boardId)
+    {
+        if (Order == null) return;
+
+        IsLoading = true;
+        ErrorMessage = null;
+        SuccessMessage = null;
+        NotifyStateChanged();
+
+        try
+        {
+            var updated = Order.RemoveBoard(boardId);
+            var command = new CreateOrUpdateOrderCommand(updated);
+            var result = await _mediator.Send(command);
+            if (result.Success)
+            {
+                SuccessMessage = "Board removed from order.";
+                await LoadAsync(updated.Id);
+            }
+            else
+            {
+                ErrorMessage = result.GetError().Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Fehler beim Entfernen des Boards: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            NotifyStateChanged();
+        }
     }
 
     /// <summary>
@@ -268,6 +304,8 @@ public class OrderDetailViewModel
     public bool IsEditable(Order order) => order.Status == OrderStatus.Draft;
     public int GetBoardCount(Order order) => order.Boards.Count;
     public int GetTotalComponents(Order order) => order.Boards.Sum(b => b.Components.Count);
+    public long GetQuantityForBoard(Guid boardId) =>
+        Order?.BoardIds.FirstOrDefault(b => b.Id == boardId)?.Quantity ?? 0;
 
     private void NotifyStateChanged()
     {

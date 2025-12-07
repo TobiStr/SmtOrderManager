@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using SmtOrderManager.Application.Features.Boards.Commands.CreateOrUpdateBoard;
 using SmtOrderManager.Application.Features.Boards.Commands.DeleteBoard;
 using SmtOrderManager.Application.Features.Boards.Queries.GetBoardById;
+using SmtOrderManager.Application.Features.Boards.Commands.AddComponentToBoard;
 using SmtOrderManager.Application.Features.Components.Commands.CreateOrUpdateComponent;
 using SmtOrderManager.Application.Features.Components.Commands.DeleteComponent;
 using SmtOrderManager.Domain.Entities;
@@ -87,15 +88,7 @@ public class BoardDetailViewModel
 
         try
         {
-            // Component.Create Signatur: (name, description, quantity, boardId, imageUrl)
-            var component = Component.Create(
-                selection.ComponentName,
-                selection.Comment ?? "Component from picker",
-                selection.Quantity,
-                null  // ImageUrl wird aus der globalen Component übernommen
-            );
-
-            var command = new CreateOrUpdateComponentCommand(component);
+            var command = new AddComponentToBoardCommand(Board.Id, selection.ComponentId, selection.Quantity);
             var result = await _mediator.Send(command);
 
             if (result.Success)
@@ -258,6 +251,10 @@ public class BoardDetailViewModel
     public string GetDimensions(Board board) => $"{board.Length} × {board.Width} mm";
     public decimal GetTotalArea(Board board) => board.Length * board.Width;
     public int GetComponentCount(Board board) => board.Components.Count;
+    public long GetQuantityForComponent(Guid componentId)
+    {
+        return Board?.ComponentIds.FirstOrDefault(c => c.Id == componentId)?.Quantity ?? 0;
+    }
 
     private void NotifyStateChanged()
     {

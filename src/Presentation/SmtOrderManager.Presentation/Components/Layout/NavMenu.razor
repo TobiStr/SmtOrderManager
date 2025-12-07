@@ -1,3 +1,4 @@
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Authorization
 @using SmtOrderManager.Presentation.Services
 @inject CustomAuthenticationStateProvider AuthStateProvider
@@ -89,6 +90,6 @@
     private async Task HandleLogout()
     {
         await AuthStateProvider.MarkUserAsLoggedOut();
-        NavigationManager.NavigateTo("/login");
+        NavigationManager.NavigateTo("/auth/logout", true);
     }
 }

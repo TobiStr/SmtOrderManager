@@ -14,7 +14,7 @@ public class GetAllOrdersQueryTests
         var orders = new[] { Order.Create("order", DateTime.UtcNow, Guid.NewGuid()) };
 
         var repoMock = new Mock<IOrderRepository>();
-        repoMock.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IEnumerable<Order>>.Ok(orders));
 
         var logger = TestLoggerFactory.CreateLogger<GetAllOrdersQueryHandler>();
@@ -24,6 +24,6 @@ public class GetAllOrdersQueryTests
 
         Assert.True(result.Success);
         Assert.Single(result.GetOk());
-        repoMock.Verify(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

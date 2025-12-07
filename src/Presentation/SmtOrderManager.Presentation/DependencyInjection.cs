@@ -124,6 +124,8 @@ internal static class DependencyInjection
     {
         builder.Services.Configure<CosmosDbOptions>(
             builder.Configuration.GetSection("CosmosDb"));
+        builder.Services.Configure<ImageUrlOptions>(
+            builder.Configuration.GetSection("BlobStorage"));
 
         builder.Services.AddSingleton(sp =>
         {
