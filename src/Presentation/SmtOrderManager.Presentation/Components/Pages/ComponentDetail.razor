@@ -1,5 +1,6 @@
 @page "/components/{ComponentId:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using SmtOrderManager.Presentation.ViewModels
 @using Microsoft.AspNetCore.Components.Forms
 @inject ComponentDetailViewModel ViewModel

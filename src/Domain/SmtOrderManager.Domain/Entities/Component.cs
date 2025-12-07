@@ -33,15 +33,9 @@ public record Component : Entity
     public string? ImageUrl { get; init; }
 
     /// <summary>
-    /// Gets the ID of the board this component belongs to.
-    /// </summary>
-    [JsonProperty("boardId")]
-    public required Guid BoardId { get; init; }
-
-    /// <summary>
     /// Creates a new component with validation.
     /// </summary>
-    public static Component Create(string name, string description, int quantity, Guid boardId, string? imageUrl = null)
+    public static Component Create(string name, string description, int quantity, string? imageUrl = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Component name cannot be empty.", nameof(name));
@@ -52,16 +46,12 @@ public record Component : Entity
         if (quantity <= 0)
             throw new ArgumentException("Component quantity must be greater than zero.", nameof(quantity));
 
-        if (boardId == Guid.Empty)
-            throw new ArgumentException("Board ID cannot be empty.", nameof(boardId));
-
         return new Component
         {
             Id = UuidV7Generator.Generate(),
             Name = name,
             Description = description,
             Quantity = quantity,
-            BoardId = boardId,
             ImageUrl = imageUrl,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null

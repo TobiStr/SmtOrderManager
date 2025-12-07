@@ -1,5 +1,6 @@
 @page "/orders/create"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using SmtOrderManager.Presentation.ViewModels
 @using System.ComponentModel.DataAnnotations
 @inject OrderCreateViewModel ViewModel

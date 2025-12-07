@@ -72,7 +72,7 @@ public class LoginViewModel
                 };
 
                 // User als authentifiziert markieren
-                await _authStateProvider.MarkUserAsAuthenticated(userDto);
+                await _authStateProvider.MarkUserAsAuthenticated(userDto, RememberMe);
 
                 _navigationManager.NavigateTo("/");
             }

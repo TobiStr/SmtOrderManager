@@ -10,7 +10,6 @@ public class CreateOrUpdateComponentCommandValidator : AbstractValidator<CreateO
         RuleFor(x => x.Component.Name).NotEmpty();
         RuleFor(x => x.Component.Description).NotEmpty();
         RuleFor(x => x.Component.Quantity).GreaterThan(0);
-        RuleFor(x => x.Component.BoardId).NotEmpty();
         When(x => x.ImageStream is not null, () =>
         {
             RuleFor(x => x.ImageFileName).NotEmpty();

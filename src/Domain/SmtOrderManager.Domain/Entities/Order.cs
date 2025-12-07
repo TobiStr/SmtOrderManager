@@ -81,9 +81,6 @@ public record Order : Entity
         if (board == null)
             throw new ArgumentNullException(nameof(board));
 
-        if (board.OrderId != Id)
-            throw new InvalidOperationException("Board does not belong to this order.");
-
         if (BoardIds.Contains(board.Id))
             throw new InvalidOperationException("Board already exists in this order.");
 

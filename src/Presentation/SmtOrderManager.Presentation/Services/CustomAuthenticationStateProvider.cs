@@ -11,10 +11,13 @@ namespace SmtOrderManager.Presentation.Services;
 /// </summary>
 public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 {
+    public const string Scheme = "CustomAuth";
+
     private readonly ProtectedSessionStorage _sessionStorage;
     private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
 
-    public CustomAuthenticationStateProvider(ProtectedSessionStorage sessionStorage)
+    public CustomAuthenticationStateProvider(
+        ProtectedSessionStorage sessionStorage)
     {
         _sessionStorage = sessionStorage;
     }
@@ -34,7 +37,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
                 new Claim(ClaimTypes.NameIdentifier, userSession.Id.ToString()),
                 new Claim(ClaimTypes.Name, userSession.Name),
                 new Claim(ClaimTypes.Email, userSession.Email)
-            }, "CustomAuth"));
+            }, Scheme));
 
             return await Task.FromResult(new AuthenticationState(claimsPrincipal));
         }
@@ -44,7 +47,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
         }
     }
 
-    public async Task MarkUserAsAuthenticated(UserDto user)
+    public async Task MarkUserAsAuthenticated(UserDto user, bool isPersistent = false)
     {
         await _sessionStorage.SetAsync("UserSession", user);
 
@@ -53,7 +56,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Name),
             new Claim(ClaimTypes.Email, user.Email)
-        }, "CustomAuth"));
+        }, Scheme));
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
     }

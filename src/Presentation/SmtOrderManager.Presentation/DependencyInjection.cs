@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
@@ -61,9 +63,19 @@ internal static class DependencyInjection
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        builder.Services.AddScoped<ProtectedSessionStorage>();
+
         builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddAuthentication();
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CustomAuthenticationStateProvider.Scheme;
+            options.DefaultAuthenticateScheme = CustomAuthenticationStateProvider.Scheme;
+            options.DefaultChallengeScheme = CustomAuthenticationStateProvider.Scheme;
+        }).AddScheme<AuthenticationSchemeOptions, NoOpAuthenticationHandler>(
+            CustomAuthenticationStateProvider.Scheme,
+            _ => { });
+
         builder.Services.AddAuthorization();
         builder.Services.AddCascadingAuthenticationState();
 
