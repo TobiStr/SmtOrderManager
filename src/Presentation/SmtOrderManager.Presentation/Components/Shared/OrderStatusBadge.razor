@@ -26,12 +26,12 @@
     {
         return Status switch
         {
-            OrderStatus.Draft => "📝 Entwurf",
-            OrderStatus.Submitted => "📤 Eingereicht",
-            OrderStatus.InProduction => "🔧 In Produktion",
-            OrderStatus.Completed => "✅ Fertig",
-            OrderStatus.Cancelled => "❌ Storniert",
-            OrderStatus.Archived => "📦 Archiviert",
+            OrderStatus.Draft => "Draft",
+            OrderStatus.Submitted => "Submitted",
+            OrderStatus.InProduction => "In production",
+            OrderStatus.Completed => "Completed",
+            OrderStatus.Cancelled => "Cancelled",
+            OrderStatus.Archived => "Archived",
             _ => Status.ToString()
         };
     }

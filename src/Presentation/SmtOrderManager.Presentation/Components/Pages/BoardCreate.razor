@@ -11,8 +11,8 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header">
-                    <h4>
-                        <span class="bi bi-plus-circle"></span> Create New Board
+                    <h4 class="mb-0">
+                        <span class="bi bi-plus-circle"></span> Create new board
                     </h4>
                 </div>
                 <div class="card-body">
@@ -73,7 +73,7 @@
                         }
 
                         <div class="d-flex justify-content-between">
-                            <a href="/boards" class="btn btn-secondary" disabled="@ViewModel.IsLoading">
+                            <a href="/boards" class="btn btn-secondary">
                                 <span class="bi bi-x-circle"></span> Cancel
                             </a>
                             <button type="submit"
@@ -87,7 +87,7 @@
                                 else
                                 {
                                     <span class="bi bi-check-circle"></span>
-                                    <text> Create Board</text>
+                                    <text> Create board</text>
                                 }
                             </button>
                         </div>
@@ -97,7 +97,7 @@
 
             <div class="mt-3">
                 <a href="/boards" class="text-decoration-none">
-                    <span class="bi bi-arrow-left"></span> Back to Board List
+                    <span class="bi bi-arrow-left"></span> Back to board list
                 </a>
             </div>
         </div>

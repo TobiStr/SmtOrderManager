@@ -11,13 +11,13 @@
 <div class="container-fluid mt-4">
     @if (ViewModel.IsLoading && ViewModel.Order == null)
     {
-        <LoadingSpinner Message="Order wird geladen..." />
+        <LoadingSpinner Message="Loading order..." />
     }
     else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage) && ViewModel.Order == null)
     {
         <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
         <a href="/orders" class="btn btn-secondary mt-3">
-            <span class="bi bi-arrow-left"></span> Zurück zur Übersicht
+            <span class="bi bi-arrow-left"></span> Back to list
         </a>
     }
     else if (ViewModel.Order != null)
@@ -28,11 +28,11 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/orders">Orders</a></li>
-                        <li class="breadcrumb-item active">Order vom @ViewModel.Order.OrderDate.ToString("dd.MM.yyyy")</li>
+                        <li class="breadcrumb-item active">Order on @ViewModel.Order.OrderDate.ToString("dd.MM.yyyy")</li>
                     </ol>
                 </nav>
                 <div class="d-flex align-items-center gap-3">
-                    <h2>📦 Order vom @ViewModel.Order.OrderDate.ToString("dd.MM.yyyy")</h2>
+                    <h2 class="mb-0">Order on @ViewModel.Order.OrderDate.ToString("dd.MM.yyyy")</h2>
                     <OrderStatusBadge Status="@ViewModel.Order.Status" />
                 </div>
                 <p class="text-muted">@ViewModel.Order.Description</p>
@@ -41,17 +41,17 @@
                 @if (ViewModel.CanSubmit(ViewModel.Order))
                 {
                     <button class="btn btn-primary me-2" @onclick="OnSubmitOrderClickedAsync" disabled="@ViewModel.IsLoading">
-                        <span class="bi bi-send"></span> Order einreichen
+                        <span class="bi bi-send"></span> Submit order
                     </button>
                 }
                 @if (ViewModel.CanCancel(ViewModel.Order))
                 {
                     <button class="btn btn-warning me-2" @onclick="OnCancelOrderClickedAsync" disabled="@ViewModel.IsLoading">
-                        <span class="bi bi-x-circle"></span> Stornieren
+                        <span class="bi bi-x-circle"></span> Cancel
                     </button>
                 }
                 <button class="btn btn-outline-danger" @onclick="OnDeleteOrderClickedAsync" disabled="@ViewModel.IsLoading">
-                    <span class="bi bi-trash"></span> Löschen
+                    <span class="bi bi-trash"></span> Delete
                 </button>
             </div>
         </div>
@@ -86,7 +86,7 @@
                     <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted">Boards</h6>
                         <p class="card-text">
-                            <strong>@ViewModel.GetBoardCount(ViewModel.Order)</strong> Board(s)
+                            <strong>@ViewModel.GetBoardCount(ViewModel.Order)</strong> board(s)
                         </p>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                     <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted">Components</h6>
                         <p class="card-text">
-                            <strong>@ViewModel.GetTotalComponents(ViewModel.Order)</strong> Component(s) gesamt
+                            <strong>@ViewModel.GetTotalComponents(ViewModel.Order)</strong> component(s) total
                         </p>
                     </div>
                 </div>
@@ -104,7 +104,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Erstellt</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">Created</h6>
                         <p class="card-text">
                             @ViewModel.Order.CreatedAt.ToString("dd.MM.yyyy HH:mm")
                         </p>
@@ -116,26 +116,26 @@
         <!-- Boards Section -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Boards in dieser Order</h5>
+                <h5 class="mb-0">Boards in this order</h5>
                 @if (ViewModel.IsEditable(ViewModel.Order))
                 {
                     <button class="btn btn-primary btn-sm"
                             @onclick="@(() => ViewModel.OpenBoardPicker())"
                             disabled="@ViewModel.IsLoading">
-                        <span class="bi bi-plus-circle"></span> Board hinzufügen
+                        <span class="bi bi-plus-circle"></span> Add board
                     </button>
                 }
             </div>
             <div class="card-body">
                 @if (ViewModel.IsLoading)
                 {
-                    <LoadingSpinner Message="Boards werden aktualisiert..." />
+                    <LoadingSpinner Message="Refreshing boards..." />
                 }
                 else if (!ViewModel.Order.Boards.Any())
                 {
                     <div class="alert alert-info">
                         <span class="bi bi-info-circle"></span>
-                        Noch keine Boards in dieser Order. Fügen Sie Boards hinzu, um mit der Produktion zu beginnen.
+                        No boards in this order yet. Add boards to start production.
                     </div>
                 }
                 else
@@ -145,10 +145,10 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Name</th>
-                                    <th>Beschreibung</th>
-                                    <th>Abmessungen</th>
+                                    <th>Description</th>
+                                    <th>Dimensions</th>
                                     <th>Components</th>
-                                    <th class="text-end">Aktionen</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -157,12 +157,12 @@
                                     <tr>
                                         <td><strong>@board.Name</strong></td>
                                         <td>@board.Description</td>
-                                        <td>@board.Length × @board.Width mm</td>
+                                        <td>@board.Length - @board.Width mm</td>
                                         <td>@board.Components.Count</td>
                                         <td class="text-end">
                                             <button class="btn btn-sm btn-outline-primary"
                                                     @onclick="@(() => ViewModel.NavigateToBoard(board.Id))"
-                                                    title="Details anzeigen">
+                                                    title="View details">
                                                 <span class="bi bi-eye"></span>
                                             </button>
                                         </td>
@@ -177,29 +177,27 @@
     }
 </div>
 
-<!-- Board Picker Dialog (Simple Version) -->
 @if (ViewModel.ShowBoardPicker)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Board hinzufügen</h5>
+                    <h5 class="modal-title">Add board</h5>
                     <button type="button" class="btn-close" @onclick="@(() => ViewModel.CloseBoardPicker())"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted">Board-Auswahl wird in der nächsten Version implementiert.</p>
-                    <p class="text-muted">Bitte erstellen Sie zunächst ein Board unter "Boards" und ordnen Sie es dann dieser Order zu.</p>
+                    <p class="text-muted">Board selection will be added in the next iteration.</p>
+                    <p class="text-muted mb-0">Create a board under "Boards" first, then attach it here.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="@(() => ViewModel.CloseBoardPicker())">Schließen</button>
+                    <button type="button" class="btn btn-secondary" @onclick="@(() => ViewModel.CloseBoardPicker())">Close</button>
                 </div>
             </div>
         </div>
     </div>
 }
 
-<!-- Confirm Dialog -->
 <ConfirmDialog @ref="confirmDialog" />
 
 @code {
@@ -232,8 +230,8 @@
         if (confirmDialog != null && ViewModel.Order != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Order einreichen",
-                $"Möchten Sie die Order vom {ViewModel.Order.OrderDate:dd.MM.yyyy} wirklich einreichen? Nach dem Einreichen kann die Order nicht mehr bearbeitet werden."
+                "Submit order",
+                $"Submit the order from {ViewModel.Order.OrderDate:dd.MM.yyyy}? After submitting, the order becomes read-only."
             );
 
             if (confirmed)
@@ -248,8 +246,8 @@
         if (confirmDialog != null && ViewModel.Order != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Order stornieren",
-                $"Möchten Sie die Order vom {ViewModel.Order.OrderDate:dd.MM.yyyy} wirklich stornieren?"
+                "Cancel order",
+                $"Cancel the order from {ViewModel.Order.OrderDate:dd.MM.yyyy}?"
             );
 
             if (confirmed)
@@ -264,8 +262,8 @@
         if (confirmDialog != null && ViewModel.Order != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Order löschen",
-                $"Möchten Sie die Order vom {ViewModel.Order.OrderDate:dd.MM.yyyy} wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+                "Delete order",
+                $"Delete the order from {ViewModel.Order.OrderDate:dd.MM.yyyy}? This action cannot be undone."
             );
 
             if (confirmed)

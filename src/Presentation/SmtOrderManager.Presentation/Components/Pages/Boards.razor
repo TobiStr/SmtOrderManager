@@ -7,23 +7,22 @@
 
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>🔲 Alle Boards</h1>
+        <h1 class="mb-0">All boards</h1>
         <button class="btn btn-primary" @onclick="ViewModel.NavigateToCreate">
-            <span class="bi bi-plus-circle"></span> Neues Board
+            <span class="bi bi-plus-circle"></span> New board
         </button>
     </div>
 
-    <!-- Search Bar -->
     @if (!ViewModel.IsLoading && ViewModel.Boards.Any())
     {
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <label class="form-label">Suche</label>
+                        <label class="form-label">Search</label>
                         <input type="text"
                                class="form-control"
-                               placeholder="Board-Name durchsuchen..."
+                               placeholder="Search by board name..."
                                value="@ViewModel.SearchTerm"
                                @oninput="@(e => { ViewModel.SearchTerm = e.Value?.ToString(); StateHasChanged(); })" />
                     </div>
@@ -31,11 +30,11 @@
                         <div class="text-muted">
                             @if (ViewModel.FilteredBoards.Count != ViewModel.Boards.Count)
                             {
-                                <text>Zeige @ViewModel.FilteredBoards.Count von @ViewModel.Boards.Count Boards</text>
+                                <text>Showing @ViewModel.FilteredBoards.Count of @ViewModel.Boards.Count boards</text>
                             }
                             else
                             {
-                                <text>@ViewModel.Boards.Count Board(s) gesamt</text>
+                                <text>@ViewModel.Boards.Count board(s) total</text>
                             }
                         </div>
                     </div>
@@ -44,10 +43,9 @@
         </div>
     }
 
-    <!-- Loading State -->
     @if (ViewModel.IsLoading)
     {
-        <LoadingSpinner Message="Boards werden geladen..." />
+        <LoadingSpinner Message="Loading boards..." />
     }
     else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
     {
@@ -55,26 +53,23 @@
     }
     else if (!ViewModel.Boards.Any())
     {
-        <!-- Empty State -->
         <div class="alert alert-info">
-            <h4><span class="bi bi-inbox"></span> Noch keine Boards vorhanden</h4>
-            <p>Erstellen Sie Ihr erstes Board, um loszulegen!</p>
+            <h4><span class="bi bi-inbox"></span> No boards yet</h4>
+            <p>Create your first board to get started.</p>
             <button class="btn btn-primary" @onclick="ViewModel.NavigateToCreate">
-                <span class="bi bi-plus-circle"></span> Erstes Board erstellen
+                <span class="bi bi-plus-circle"></span> Create first board
             </button>
         </div>
     }
     else if (!ViewModel.FilteredBoards.Any())
     {
-        <!-- No Results -->
         <div class="alert alert-warning">
-            <h5><span class="bi bi-search"></span> Keine Boards gefunden</h5>
-            <p>Keine Boards entsprechen dem Suchbegriff "@ViewModel.SearchTerm".</p>
+            <h5><span class="bi bi-search"></span> No boards found</h5>
+            <p>No boards match the search term "@ViewModel.SearchTerm".</p>
         </div>
     }
     else
     {
-        <!-- Boards Grid -->
         <div class="row">
             @foreach (var board in ViewModel.FilteredBoards)
             {
@@ -83,7 +78,7 @@
                          style="cursor: pointer;"
                          @onclick="@(() => ViewModel.NavigateToDetail(board.Id))">
                         <div class="card-body">
-                            <h5 class="card-title">
+                            <h5 class="card-title d-flex align-items-center gap-2">
                                 <span class="bi bi-grid-3x3"></span> @board.Name
                             </h5>
 
@@ -94,7 +89,7 @@
                                 }
                                 else
                                 {
-                                    <em>Keine Beschreibung</em>
+                                    <em>No description</em>
                                 }
                             </p>
 
@@ -102,8 +97,8 @@
                                 <div class="row">
                                     <div class="col-6">
                                         <small class="text-muted">
-                                            <strong>Abmessungen</strong><br />
-                                            📏 @ViewModel.GetDimensions(board)
+                                            <strong>Dimensions</strong><br />
+                                            @ViewModel.GetDimensions(board)
                                         </small>
                                     </div>
                                     <div class="col-6">
@@ -119,13 +114,13 @@
                                 <button class="btn btn-sm btn-outline-primary"
                                         @onclick:stopPropagation="true"
                                         @onclick="@(() => ViewModel.NavigateToDetail(board.Id))">
-                                    <span class="bi bi-eye"></span> Details ansehen
+                                    <span class="bi bi-eye"></span> View details
                                 </button>
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
                             <small class="text-muted">
-                                Erstellt: @board.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                Created: @board.CreatedAt.ToString("dd.MM.yyyy HH:mm")
                             </small>
                         </div>
                     </div>
@@ -134,16 +129,6 @@
         </div>
     }
 </div>
-
-<style>
-    .hover-shadow {
-        transition: box-shadow 0.2s ease-in-out;
-    }
-
-    .hover-shadow:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    }
-</style>
 
 @code {
     protected override async Task OnInitializedAsync()

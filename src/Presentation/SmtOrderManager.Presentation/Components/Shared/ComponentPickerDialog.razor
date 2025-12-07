@@ -9,13 +9,13 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Component auswählen</h5>
+                <h5 class="modal-title">Select component</h5>
                 <button type="button" class="btn-close" @onclick="Cancel"></button>
             </div>
             <div class="modal-body">
                 @if (isLoading)
                 {
-                    <LoadingSpinner Message="Components werden geladen..." />
+                    <LoadingSpinner Message="Loading components..." />
                 }
                 else if (!string.IsNullOrWhiteSpace(errorMessage))
                 {
@@ -23,17 +23,17 @@
                 }
                 else
                 {
-                    <!-- Suchfeld -->
+                    <!-- Search -->
                     <div class="mb-3">
                         <input type="text"
                                class="form-control"
-                               placeholder="Component suchen..."
+                               placeholder="Search components..."
                                @bind="searchTerm"
                                @bind:event="oninput"
                                @onkeyup="ApplyFilter" />
                     </div>
 
-                    <!-- Component-Liste -->
+                    <!-- Component list -->
                     <div class="list-group mb-3" style="max-height: 300px; overflow-y: auto;">
                         @foreach (var component in filteredComponents)
                         {
@@ -56,37 +56,37 @@
                         @if (!filteredComponents.Any())
                         {
                             <div class="alert alert-info">
-                                Keine Components gefunden.
+                                No components found.
                             </div>
                         }
                     </div>
 
                     @if (selectedComponent != null)
                     {
-                        <!-- Quantity & Reference Eingabe -->
+                        <!-- Quantity & reference input -->
                         <div class="border rounded p-3 bg-light">
-                            <h6>Ausgewählt: @selectedComponent.Name</h6>
+                            <h6>Selected: @selectedComponent.Name</h6>
 
                             <div class="row g-2 mt-2">
                                 <div class="col-md-4">
-                                    <label class="form-label">Anzahl</label>
+                                    <label class="form-label">Quantity</label>
                                     <input type="number"
                                            class="form-control"
                                            min="1"
                                            @bind="quantity" />
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Referenz (optional)</label>
+                                    <label class="form-label">Reference (optional)</label>
                                     <input type="text"
                                            class="form-control"
-                                           placeholder="z.B. R1, C5"
+                                           placeholder="e.g., R1, C5"
                                            @bind="reference" />
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Kommentar (optional)</label>
+                                    <label class="form-label">Comment (optional)</label>
                                     <input type="text"
                                            class="form-control"
-                                           placeholder="Notizen..."
+                                           placeholder="Notes..."
                                            @bind="comment" />
                                 </div>
                             </div>
@@ -95,12 +95,12 @@
                 }
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @onclick="Cancel">Abbrechen</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
                 <button type="button"
                         class="btn btn-primary"
                         disabled="@(selectedComponent == null || isLoading)"
                         @onclick="Confirm">
-                    Component hinzufügen
+                    Add component
                 </button>
             </div>
         </div>
@@ -148,7 +148,7 @@
             if (result.Success)
             {
                 var components = result.GetOk();
-                allComponents = components.ToList(); // Direkt Domain-Entities
+                allComponents = components.ToList(); // Keep Domain entities
                 filteredComponents = allComponents;
             }
             else
@@ -158,7 +158,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Fehler: {ex.Message}";
+            errorMessage = $"Error: {ex.Message}";
         }
         finally
         {
@@ -169,7 +169,7 @@
     private void SelectComponent(Component component)
     {
         selectedComponent = component;
-        quantity = component.Quantity; // Domain-Entity hat Quantity statt DefaultQuantity
+        quantity = component.Quantity;
     }
 
     private void ApplyFilter()

@@ -27,12 +27,14 @@
                         <li class="breadcrumb-item active">@ViewModel.Board.Name</li>
                     </ol>
                 </nav>
-                <h2>🔲 @ViewModel.Board.Name</h2>
-                <p class="text-muted">@ViewModel.Board.Description</p>
+                <h2 class="d-flex align-items-center gap-2">
+                    <span class="bi bi-grid-3x3"></span> @ViewModel.Board.Name
+                </h2>
+                <p class="text-muted mb-0">@ViewModel.Board.Description</p>
             </div>
             <div class="col-auto">
-                <button class="btn btn-outline-danger" @onclick="OnDeleteBoardClickedAsync">
-                    <span class="bi bi-trash"></span> Delete Board
+                <button class="btn btn-outline-danger" @onclick="OnDeleteBoardClickedAsync" disabled="@ViewModel.IsLoading">
+                    <span class="bi bi-trash"></span> Delete board
                 </button>
             </div>
         </div>
@@ -50,7 +52,7 @@
             </div>
         }
 
-        <!-- Board Info Card -->
+        <!-- Board Info -->
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card">
@@ -68,7 +70,7 @@
                     <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted">Components</h6>
                         <p class="card-text">
-                            <strong>@ViewModel.GetComponentCount(ViewModel.Board)</strong> Component(s) on this board
+                            <strong>@ViewModel.GetComponentCount(ViewModel.Board)</strong> component(s) on this board
                         </p>
                     </div>
                 </div>
@@ -88,11 +90,11 @@
         <!-- Components Section -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Components on this Board</h5>
+                <h5 class="mb-0">Components on this board</h5>
                 <button class="btn btn-primary btn-sm"
                         @onclick="@(() => ViewModel.OpenComponentPicker())"
                         disabled="@ViewModel.IsLoading">
-                    <span class="bi bi-plus-circle"></span> Add Component
+                    <span class="bi bi-plus-circle"></span> Add component
                 </button>
             </div>
             <div class="card-body">
@@ -200,8 +202,8 @@
         if (confirmDialog != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Remove Component",
-                $"Are you sure you want to remove component '{component.Name}' from this board?"
+                "Remove component",
+                $"Remove component '{component.Name}' from this board?"
             );
 
             if (confirmed)
@@ -216,8 +218,8 @@
         if (confirmDialog != null && ViewModel.Board != null)
         {
             var confirmed = await confirmDialog.ShowAsync(
-                "Delete Board",
-                $"Are you sure you want to delete board '{ViewModel.Board.Name}'? This action cannot be undone."
+                "Delete board",
+                $"Delete board '{ViewModel.Board.Name}'? This action cannot be undone."
             );
 
             if (confirmed)

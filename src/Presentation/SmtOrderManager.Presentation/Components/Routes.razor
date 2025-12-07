@@ -11,7 +11,7 @@
                     }
                     else
                     {
-                        <p>Sie sind nicht berechtigt, diese Seite aufzurufen.</p>
+                        <p>You are not authorized to view this page.</p>
                     }
                 </NotAuthorized>
             </AuthorizeRouteView>
@@ -21,7 +21,7 @@
 </CascadingAuthenticationState>
 
 @code {
-    // Redirect Component für nicht authentifizierte User
+    // Redirect component for unauthenticated users
     private class RedirectToLogin : ComponentBase
     {
         [Inject] private NavigationManager Navigation { get; set; } = default!;
