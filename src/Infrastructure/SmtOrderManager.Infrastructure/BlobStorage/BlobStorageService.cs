@@ -96,8 +96,21 @@ public class BlobStorageService : IBlobStorageService
         try
         {
             var blobClient = _containerClient.GetBlobClient(blobName);
-            content.Position = 0;
-            await blobClient.UploadAsync(content, overwrite: true, cancellationToken);
+            Stream uploadStream = content;
+
+            if (content.CanSeek)
+            {
+                content.Position = 0;
+            }
+            else
+            {
+                var buffered = new MemoryStream();
+                await content.CopyToAsync(buffered, cancellationToken);
+                buffered.Position = 0;
+                uploadStream = buffered;
+            }
+
+            await blobClient.UploadAsync(uploadStream, overwrite: true, cancellationToken);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
