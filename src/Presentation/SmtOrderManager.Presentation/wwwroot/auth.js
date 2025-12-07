@@ -30,3 +30,5 @@ window.smtAuth = {
         }
     }
 };
+
+// logout handled via navigation to /auth/logout
