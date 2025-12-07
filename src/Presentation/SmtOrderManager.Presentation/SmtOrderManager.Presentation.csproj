@@ -16,4 +16,10 @@
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update=".env">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
