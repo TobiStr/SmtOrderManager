@@ -12,6 +12,7 @@ public class BlobStorageService : IBlobStorageService
 {
     private readonly BlobContainerClient _containerClient;
     private readonly ILogger<BlobStorageService> _logger;
+    private readonly string? _sasToken;
 
     public BlobStorageService(
         IOptions<BlobStorageOptions> options,
@@ -20,6 +21,7 @@ public class BlobStorageService : IBlobStorageService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         var opts = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _sasToken = opts.SasToken;
 
         if (string.IsNullOrWhiteSpace(opts.ConnectionString))
         {
@@ -77,6 +79,12 @@ public class BlobStorageService : IBlobStorageService
 
         var blobClient = _containerClient.GetBlobClient(blobName);
         var url = blobClient.Uri.ToString();
+        if (!string.IsNullOrWhiteSpace(_sasToken))
+        {
+            var token = _sasToken.TrimStart('?');
+            var separator = url.Contains("?", StringComparison.Ordinal) ? "&" : "?";
+            url = $"{url}{separator}{token}";
+        }
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
