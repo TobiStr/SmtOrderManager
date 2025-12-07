@@ -142,7 +142,7 @@
                                         </td>
                                         <td><strong>@component.Name</strong></td>
                                         <td>@component.Description</td>
-                                        <td>@component.Quantity</td>
+                                        <td>@ViewModel.GetQuantityForComponent(component.Id)</td>
                                         <td class="text-end">
                                             <button class="btn btn-sm btn-outline-danger ms-1"
                                                     @onclick="@(async () => await OnRemoveComponentClickedAsync(component))"

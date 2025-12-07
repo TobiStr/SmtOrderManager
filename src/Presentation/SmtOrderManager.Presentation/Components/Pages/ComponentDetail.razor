@@ -113,21 +113,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Default Quantity</label>
-                            @if (ViewModel.IsEditMode)
-                            {
-                                <input type="number"
-                                       class="form-control"
-                                       style="max-width: 150px;"
-                                       @bind="ViewModel.EditableQuantity"
-                                       @bind:event="oninput"
-                                       min="1"
-                                       disabled="@ViewModel.IsLoading" />
-                            }
-                            else
-                            {
-                                <p class="mb-0">@ViewModel.Component.Quantity</p>
-                            }
+                            <label class="form-label fw-bold">Details</label>
+                            <p class="mb-0">Use this component on boards with desired quantities per placement.</p>
                         </div>
 
                         <div class="row">

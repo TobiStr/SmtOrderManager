@@ -23,7 +23,6 @@ public class ComponentCreateViewModel
     // Form Properties
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public int Quantity { get; set; } = 1;
     public string? ImageUrl { get; private set; }
 
     // File Upload State
@@ -122,7 +121,6 @@ public class ComponentCreateViewModel
             var component = Component.Create(
                 Name.Trim(),
                 Description.Trim(),
-                Quantity,
                 null // ImageUrl wird vom Command gesetzt
             );
 
@@ -182,8 +180,7 @@ public class ComponentCreateViewModel
     {
         return !string.IsNullOrWhiteSpace(Name)
                && Name.Trim().Length >= 2
-               && !string.IsNullOrWhiteSpace(Description)
-               && Quantity > 0;
+               && !string.IsNullOrWhiteSpace(Description);
     }
 
     private void NotifyStateChanged()

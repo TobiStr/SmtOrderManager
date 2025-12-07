@@ -32,8 +32,6 @@ public class ComponentDetailViewModel
     // Editable Properties (für Bearbeitungsmodus)
     public string EditableName { get; set; } = string.Empty;
     public string EditableDescription { get; set; } = string.Empty;
-    public int EditableQuantity { get; set; } = 1;
-
     // File Upload State
     public IBrowserFile? SelectedFile { get; private set; }
     public string? FilePreviewUrl { get; private set; }
@@ -63,7 +61,6 @@ public class ComponentDetailViewModel
                 // Editable Properties initialisieren
                 EditableName = Component.Name;
                 EditableDescription = Component.Description;
-                EditableQuantity = Component.Quantity;
                 IsEditMode = false;
             }
             else
@@ -149,7 +146,6 @@ public class ComponentDetailViewModel
         IsEditMode = true;
         EditableName = Component.Name;
         EditableDescription = Component.Description;
-        EditableQuantity = Component.Quantity;
         NotifyStateChanged();
     }
 
@@ -184,7 +180,6 @@ public class ComponentDetailViewModel
             {
                 Name = EditableName.Trim(),
                 Description = EditableDescription.Trim(),
-                Quantity = EditableQuantity,
                 UpdatedAt = DateTime.UtcNow
             };
 
@@ -293,8 +288,7 @@ public class ComponentDetailViewModel
     {
         return !string.IsNullOrWhiteSpace(EditableName)
                && EditableName.Trim().Length >= 2
-               && !string.IsNullOrWhiteSpace(EditableDescription)
-               && EditableQuantity > 0;
+               && !string.IsNullOrWhiteSpace(EditableDescription);
     }
 
     private void NotifyStateChanged()

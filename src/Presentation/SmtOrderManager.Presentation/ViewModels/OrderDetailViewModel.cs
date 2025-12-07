@@ -200,7 +200,7 @@ public class OrderDetailViewModel
 
         try
         {
-            var command = new AddBoardToOrderCommand(Order.Id, boardId);
+            var command = new AddBoardToOrderCommand(Order.Id, boardId, 1);
             var result = await _mediator.Send(command);
 
             if (result.Success)

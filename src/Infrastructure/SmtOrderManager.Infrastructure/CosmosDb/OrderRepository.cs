@@ -48,7 +48,8 @@ public class OrderRepository : IOrderRepository
             // Load boards by IDs (boards will load their components)
             if (order.BoardIds.Any())
             {
-                var boardsResult = await _boardRepository.GetByIdsAsync(order.BoardIds, cancellationToken);
+                var boardIds = order.BoardIds.Select(b => b.Id);
+                var boardsResult = await _boardRepository.GetByIdsAsync(boardIds, cancellationToken);
                 if (boardsResult.Success)
                 {
                     var boards = boardsResult.GetOk();
@@ -125,7 +126,8 @@ public class OrderRepository : IOrderRepository
             {
                 if (order.BoardIds.Any())
                 {
-                    var boardsResult = await _boardRepository.GetByIdsAsync(order.BoardIds, cancellationToken);
+                    var boardIds = order.BoardIds.Select(b => b.Id);
+                    var boardsResult = await _boardRepository.GetByIdsAsync(boardIds, cancellationToken);
                     if (boardsResult.Success)
                     {
                         var boards = boardsResult.GetOk();
@@ -230,19 +232,8 @@ public class OrderRepository : IOrderRepository
 
     private static Order PrepareForPersistence(Order order)
     {
-        var boardIds = new List<Guid>(order.BoardIds);
-
-        foreach (var board in order.Boards)
-        {
-            if (!boardIds.Contains(board.Id))
-            {
-                boardIds.Add(board.Id);
-            }
-        }
-
         return order with
         {
-            BoardIds = boardIds,
             Boards = Array.Empty<Board>()
         };
     }

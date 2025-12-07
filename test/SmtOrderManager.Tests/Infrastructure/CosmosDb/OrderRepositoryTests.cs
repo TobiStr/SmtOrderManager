@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SmtOrderManager.Domain.Entities;
+using SmtOrderManager.Domain.Primitives;
 using SmtOrderManager.Domain.Repositories;
 using SmtOrderManager.Infrastructure.CosmosDb;
 using SmtOrderManager.Tests.Application.TestHelpers;
@@ -27,12 +28,12 @@ public class OrderRepositoryTests
     {
         var order = Order.Create("order", DateTime.UtcNow, Guid.NewGuid()) with
         {
-            BoardIds = new List<Guid> { Guid.NewGuid() }
+            BoardIds = new List<QuantizedId> { new(Guid.NewGuid(), 2) }
         };
         var board = Board.Create("B1", "desc", 10, 5);
 
         var boardRepoMock = new Mock<IBoardRepository>();
-        boardRepoMock.Setup(r => r.GetByIdsAsync(order.BoardIds, It.IsAny<CancellationToken>()))
+        boardRepoMock.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result<IEnumerable<Board>>.Ok(new[] { board }));
 
         var (repo, containerMock) = CreateRepository(boardRepoMock.Object);

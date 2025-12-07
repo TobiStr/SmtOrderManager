@@ -21,12 +21,6 @@ public record Component : Entity
     public required string Description { get; init; }
 
     /// <summary>
-    /// Gets the quantity of this component.
-    /// </summary>
-    [JsonProperty("quantity")]
-    public required int Quantity { get; init; }
-
-    /// <summary>
     /// Gets the optional URL reference to the component image in blob storage.
     /// </summary>
     [JsonProperty("imageUrl")]
@@ -35,7 +29,7 @@ public record Component : Entity
     /// <summary>
     /// Creates a new component with validation.
     /// </summary>
-    public static Component Create(string name, string description, int quantity, string? imageUrl = null)
+    public static Component Create(string name, string description, string? imageUrl = null)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Component name cannot be empty.", nameof(name));
@@ -43,15 +37,11 @@ public record Component : Entity
         if (string.IsNullOrWhiteSpace(description))
             throw new ArgumentException("Component description cannot be empty.", nameof(description));
 
-        if (quantity <= 0)
-            throw new ArgumentException("Component quantity must be greater than zero.", nameof(quantity));
-
         return new Component
         {
             Id = UuidV7Generator.Generate(),
             Name = name,
             Description = description,
-            Quantity = quantity,
             ImageUrl = imageUrl,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null

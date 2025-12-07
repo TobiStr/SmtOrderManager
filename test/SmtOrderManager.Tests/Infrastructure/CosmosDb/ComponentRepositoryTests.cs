@@ -24,7 +24,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task GetByIdAsync_ReturnsComponent_WhenFound()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         var (repo, containerMock) = CreateRepository();
 
         containerMock
@@ -63,7 +63,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task AddOrUpdateAsync_Upserts_Component()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         var (repo, containerMock) = CreateRepository();
 
         containerMock
@@ -87,7 +87,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task GetByIdsAsync_ReturnsList_WhenFound()
     {
-        var component = Component.Create("C1", "desc", 1);
+        var component = Component.Create("C1", "desc");
         var feedResponse = CosmosTestHelpers.CreateFeedResponse(new[] { component });
         var feedIterator = CosmosTestHelpers.CreateFeedIterator(feedResponse);
 

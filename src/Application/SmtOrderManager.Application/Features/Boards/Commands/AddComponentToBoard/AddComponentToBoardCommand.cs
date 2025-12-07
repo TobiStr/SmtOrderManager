@@ -5,7 +5,7 @@ using SmtOrderManager.Domain.Repositories;
 
 namespace SmtOrderManager.Application.Features.Boards.Commands.AddComponentToBoard;
 
-public record AddComponentToBoardCommand(Guid BoardId, Guid ComponentId) : IRequest<Result<Board>>;
+public record AddComponentToBoardCommand(Guid BoardId, Guid ComponentId, long Quantity) : IRequest<Result<Board>>;
 
 public class AddComponentToBoardCommandHandler : IRequestHandler<AddComponentToBoardCommand, Result<Board>>
 {
@@ -37,15 +37,19 @@ public class AddComponentToBoardCommandHandler : IRequestHandler<AddComponentToB
 
             var board = boardResult.GetOk();
 
-            if (board.ComponentIds.Contains(request.ComponentId))
+            if (board.ComponentIds.Any(x => x.Id == request.ComponentId))
             {
-                return board;
+                var updated = board.UpdateComponentQuantity(request.ComponentId, request.Quantity);
+                var saveExisting = await _boardRepository.AddOrUpdateAsync(updated, cancellationToken);
+                if (!saveExisting.Success)
+                {
+                    return saveExisting.GetError();
+                }
+
+                return updated;
             }
 
-            var updatedBoard = board with
-            {
-                ComponentIds = board.ComponentIds.Concat(new[] { request.ComponentId }).ToList()
-            };
+            var updatedBoard = board.AddComponent(request.ComponentId, request.Quantity);
 
             var saveBoardResult = await _boardRepository.AddOrUpdateAsync(updatedBoard, cancellationToken);
             if (!saveBoardResult.Success)

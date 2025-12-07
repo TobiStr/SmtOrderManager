@@ -22,12 +22,12 @@ public class AddComponentToBoardCommandTests
         var logger = TestLoggerFactory.CreateLogger<AddComponentToBoardCommandHandler>();
         var handler = new AddComponentToBoardCommandHandler(repoMock.Object, logger);
 
-        var result = await handler.Handle(new AddComponentToBoardCommand(board.Id, componentId), CancellationToken.None);
+        var result = await handler.Handle(new AddComponentToBoardCommand(board.Id, componentId, 3), CancellationToken.None);
 
         Assert.True(result.Success);
         repoMock.Verify(r => r.GetByIdAsync(board.Id, It.IsAny<CancellationToken>()), Times.Once);
         repoMock.Verify(r => r.AddOrUpdateAsync(
-            It.Is<Board>(b => b.ComponentIds.Contains(componentId)),
+            It.Is<Board>(b => b.ComponentIds.Any(c => c.Id == componentId && c.Quantity == 3)),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 }

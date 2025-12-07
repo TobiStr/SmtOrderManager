@@ -33,10 +33,10 @@ public record Board : Entity
     public required decimal Width { get; init; }
 
     /// <summary>
-    /// Gets the collection of component IDs on this board (persisted to database).
+    /// Gets the collection of component IDs with quantities on this board (persisted to database).
     /// </summary>
     [JsonProperty("componentIds")]
-    public IReadOnlyList<Guid> ComponentIds { get; init; } = Array.Empty<Guid>();
+    public IReadOnlyList<QuantizedId> ComponentIds { get; init; } = Array.Empty<QuantizedId>();
 
     /// <summary>
     /// Gets the collection of components on this board (populated on retrieval, not persisted).
@@ -70,24 +70,26 @@ public record Board : Entity
             Width = width,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,
-            ComponentIds = Array.Empty<Guid>(),
+            ComponentIds = Array.Empty<QuantizedId>(),
             Components = Array.Empty<Component>()
         };
     }
 
-    /// <summary>
-    /// Adds a component to the board by creating a new instance.
-    /// </summary>
-    public Board AddComponent(Component component)
+    public Board AddComponent(Guid componentId, long quantity, Component? component = null)
     {
-        if (component == null)
-            throw new ArgumentNullException(nameof(component));
-
-        if (ComponentIds.Contains(component.Id))
+        if (ComponentIds.Any(c => c.Id == componentId))
+        {
             throw new InvalidOperationException("Component already exists on this board.");
+        }
 
-        var newComponentIds = new List<Guid>(ComponentIds) { component.Id };
-        var newComponents = new List<Component>(Components) { component };
+        var newComponentIds = new List<QuantizedId>(ComponentIds)
+        {
+            new QuantizedId(componentId, quantity)
+        };
+
+        var newComponents = component is null
+            ? new List<Component>(Components)
+            : new List<Component>(Components) { component };
 
         return this with
         {
@@ -97,15 +99,37 @@ public record Board : Entity
         };
     }
 
-    /// <summary>
-    /// Removes a component from the board by creating a new instance.
-    /// </summary>
+    public Board UpdateComponentQuantity(Guid componentId, long quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
+        }
+
+        if (!ComponentIds.Any(c => c.Id == componentId))
+        {
+            throw new InvalidOperationException("Component not found on this board.");
+        }
+
+        var updated = ComponentIds
+            .Select(c => c.Id == componentId ? new QuantizedId(componentId, quantity) : c)
+            .ToList();
+
+        return this with
+        {
+            ComponentIds = updated,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
     public Board RemoveComponent(Guid componentId)
     {
-        if (!ComponentIds.Contains(componentId))
+        if (!ComponentIds.Any(c => c.Id == componentId))
+        {
             throw new InvalidOperationException("Component not found on this board.");
+        }
 
-        var newComponentIds = ComponentIds.Where(id => id != componentId).ToList();
+        var newComponentIds = ComponentIds.Where(c => c.Id != componentId).ToList();
         var newComponents = Components.Where(c => c.Id != componentId).ToList();
 
         return this with

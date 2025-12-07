@@ -11,7 +11,7 @@ public class GetAllComponentsQueryTests
     [Fact]
     public async Task Handle_ReturnsAllComponents()
     {
-        var components = new[] { Component.Create("C1", "desc", 1) };
+        var components = new[] { Component.Create("C1", "desc") };
 
         var repoMock = new Mock<IComponentRepository>();
         repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
