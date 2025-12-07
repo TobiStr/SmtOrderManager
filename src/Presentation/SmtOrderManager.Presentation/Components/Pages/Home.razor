@@ -1,7 +1,79 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
+@attribute [Authorize]
 
-<PageTitle>Home</PageTitle>
+<PageTitle>SMT Order Manager</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 bg-white">
+        <div class="card-body d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="display-6 mb-2">SMT Order Manager</h1>
+                <p class="text-muted mb-0">Manage orders, boards, and components from one place.</p>
+            </div>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center h-100 hover-shadow">
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="text-primary fs-2">
+                        <span class="bi bi-card-checklist"></span>
+                    </div>
+                    <h2 class="card-title fs-5">Orders</h2>
+                    <p class="card-text text-muted">Track production orders, dates, and status changes.</p>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="/orders" class="btn btn-outline-primary">View all orders</a>
+                        <a href="/orders/create" class="btn btn-primary">Create new order</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card text-center h-100 hover-shadow">
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="text-primary fs-2">
+                        <span class="bi bi-grid-3x3-gap-fill"></span>
+                    </div>
+                    <h2 class="card-title fs-5">Boards</h2>
+                    <p class="card-text text-muted">Manage PCB dimensions, descriptions, and assignments.</p>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="/boards" class="btn btn-outline-primary">View all boards</a>
+                        <a href="/boards/create" class="btn btn-primary">Create new board</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card text-center h-100 hover-shadow">
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="text-primary fs-2">
+                        <span class="bi bi-cpu-fill"></span>
+                    </div>
+                    <h2 class="card-title fs-5">Components</h2>
+                    <p class="card-text text-muted">Maintain the component library with quantities and images.</p>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="/components" class="btn btn-outline-primary">View all components</a>
+                        <a href="/components/create" class="btn btn-primary">Create new component</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm">
+                <h4 class="alert-heading mb-3">Quick start</h4>
+                <ol class="mb-3">
+                    <li><strong>Create an order</strong> to define the production batch.</li>
+                    <li><strong>Create a board</strong> that you can later attach to an order.</li>
+                    <li><strong>Add components</strong> to the board from the global library.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+@if (isOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@title</h5>
+                    <button type="button" class="btn-close" @onclick="HandleCancel" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@message</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HandleCancel">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="HandleConfirm">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isOpen;
+    private string title = "Confirm";
+    private string message = "Are you sure?";
+    private TaskCompletionSource<bool>? tcs;
+
+    /// <summary>
+    /// Shows the confirmation dialog and waits for user response
+    /// </summary>
+    /// <param name="dialogTitle">Dialog title</param>
+    /// <param name="dialogMessage">Dialog message</param>
+    /// <returns>True if confirmed, False if cancelled</returns>
+    public Task<bool> ShowAsync(string dialogTitle, string dialogMessage)
+    {
+        title = dialogTitle;
+        message = dialogMessage;
+        isOpen = true;
+        tcs = new TaskCompletionSource<bool>();
+        StateHasChanged();
+        return tcs.Task;
+    }
+
+    private void HandleConfirm()
+    {
+        isOpen = false;
+        tcs?.SetResult(true);
+        StateHasChanged();
+    }
+
+    private void HandleCancel()
+    {
+        isOpen = false;
+        tcs?.SetResult(false);
+        StateHasChanged();
+    }
+}

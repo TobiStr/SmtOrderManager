@@ -1,0 +1,153 @@
+@page "/components/create"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using SmtOrderManager.Presentation.ViewModels
+@using Microsoft.AspNetCore.Components.Forms
+@inject ComponentCreateViewModel ViewModel
+@implements IDisposable
+
+<PageTitle>New Component - SMT Order Manager</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>
+                        <span class="bi bi-cpu"></span> Create New Component
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+                    {
+                        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(ViewModel.SuccessMessage))
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <span class="bi bi-check-circle"></span> @ViewModel.SuccessMessage
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text"
+                               id="name"
+                               class="form-control"
+                               @bind="ViewModel.Name"
+                               @bind:event="oninput"
+                               placeholder="e.g., ATmega328P, 10kΩ Resistor"
+                               disabled="@ViewModel.IsLoading"
+                               maxlength="100" />
+                        <small class="form-text text-muted">At least 2 characters</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea id="description"
+                                  class="form-control"
+                                  @bind="ViewModel.Description"
+                                  @bind:event="oninput"
+                                  rows="3"
+                                  placeholder="Technical details, specifications..."
+                                  disabled="@ViewModel.IsLoading"
+                                  maxlength="500"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="imageFile" class="form-label">Image (optional)</label>
+                        <InputFile id="imageFile"
+                                   class="form-control"
+                                   OnChange="OnFileChangeAsync"
+                                   accept="image/jpeg,image/png,image/webp"
+                                   disabled="@ViewModel.IsLoading" />
+                        <small class="form-text text-muted">
+                            Max. 5 MB, Formats: JPG, PNG, WEBP
+                        </small>
+
+                        @if (ViewModel.IsUploading)
+                        {
+                            <div class="mt-2">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Uploading image...</span>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(ViewModel.FilePreviewUrl))
+                        {
+                            <div class="mt-3">
+                                <label class="form-label">Preview:</label>
+                                <div>
+                                    <img src="@ViewModel.FilePreviewUrl"
+                                         alt="Preview"
+                                         class="img-thumbnail"
+                                         style="max-width: 200px; max-height: 200px;" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button"
+                                class="btn btn-secondary"
+                                @onclick="ViewModel.Cancel"
+                                disabled="@ViewModel.IsLoading">
+                            <span class="bi bi-x-circle"></span> Cancel
+                        </button>
+                        <button type="button"
+                                class="btn btn-primary"
+                                @onclick="OnCreateClickedAsync"
+                                disabled="@(!ViewModel.CanCreate() || ViewModel.IsLoading)">
+                            @if (ViewModel.IsLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <text>Creating...</text>
+                            }
+                            else
+                            {
+                                <span class="bi bi-check-circle"></span>
+                                <text> Create Component</text>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="/components" class="text-decoration-none">
+                    <span class="bi bi-arrow-left"></span> Back to Component List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnFileChangeAsync(InputFileChangeEventArgs e)
+    {
+        await ViewModel.HandleFileSelectedAsync(e.File);
+    }
+
+    private async Task OnCreateClickedAsync()
+    {
+        await ViewModel.CreateComponentAsync();
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
+    }
+}

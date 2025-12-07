@@ -1,0 +1,253 @@
+@page "/components/{ComponentId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using SmtOrderManager.Presentation.ViewModels
+@using Microsoft.AspNetCore.Components.Forms
+@inject ComponentDetailViewModel ViewModel
+@implements IDisposable
+
+<PageTitle>@(ViewModel.Component?.Name ?? "Component Details") - SMT Order Manager</PageTitle>
+
+<div class="container mt-4">
+    @if (ViewModel.IsLoading && ViewModel.Component == null)
+    {
+        <LoadingSpinner Message="Loading component..." />
+    }
+    else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage) && ViewModel.Component == null)
+    {
+        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+        <a href="/components" class="btn btn-secondary mt-3">
+            <span class="bi bi-arrow-left"></span> Back to Overview
+        </a>
+    }
+    else if (ViewModel.Component != null)
+    {
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/components">Components</a></li>
+                                <li class="breadcrumb-item active">@ViewModel.Component.Name</li>
+                            </ol>
+                        </nav>
+                        <h2>
+                            <span class="bi bi-cpu"></span>
+                            @if (ViewModel.IsEditMode)
+                            {
+                                <input type="text"
+                                       class="form-control d-inline-block"
+                                       style="width: auto;"
+                                       @bind="ViewModel.EditableName"
+                                       @bind:event="oninput"
+                                       disabled="@ViewModel.IsLoading" />
+                            }
+                            else
+                            {
+                                @ViewModel.Component.Name
+                            }
+                        </h2>
+                    </div>
+                    <div>
+                        @if (!ViewModel.IsEditMode)
+                        {
+                            <button class="btn btn-primary me-2" @onclick="ViewModel.EnableEditMode">
+                                <span class="bi bi-pencil"></span> Edit
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="OnDeleteClickedAsync">
+                                <span class="bi bi-trash"></span> Delete
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-success me-2"
+                                    @onclick="OnSaveClickedAsync"
+                                    disabled="@(!ViewModel.CanSave() || ViewModel.IsLoading)">
+                                @if (ViewModel.IsLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                <span class="bi bi-check"></span> Save
+                            </button>
+                            <button class="btn btn-secondary" @onclick="ViewModel.CancelEdit" disabled="@ViewModel.IsLoading">
+                                <span class="bi bi-x"></span> Cancel
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+                {
+                    <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+                }
+
+                @if (!string.IsNullOrWhiteSpace(ViewModel.SuccessMessage))
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span class="bi bi-check-circle"></span> @ViewModel.SuccessMessage
+                        <button type="button" class="btn-close" @onclick="@(() => StateHasChanged())"></button>
+                    </div>
+                }
+
+                <!-- Component Details Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Description</label>
+                            @if (ViewModel.IsEditMode)
+                            {
+                                <textarea class="form-control"
+                                          @bind="ViewModel.EditableDescription"
+                                          @bind:event="oninput"
+                                          rows="4"
+                                          disabled="@ViewModel.IsLoading"
+                                          maxlength="500"></textarea>
+                            }
+                            else
+                            {
+                                <p class="mb-0">@ViewModel.Component.Description</p>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Details</label>
+                            <p class="mb-0">Use this component on boards with desired quantities per placement.</p>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Created</label>
+                                <p class="mb-0">@ViewModel.Component.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Last Modified</label>
+                                <p class="mb-0">
+                                    @if (ViewModel.Component.UpdatedAt.HasValue)
+                                    {
+                                        @ViewModel.Component.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload (only in Edit Mode) -->
+                @if (ViewModel.IsEditMode)
+                {
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Change Image</h5>
+                        </div>
+                        <div class="card-body">
+                            <InputFile class="form-control"
+                                       OnChange="OnFileChangeAsync"
+                                       accept="image/jpeg,image/png,image/webp"
+                                       disabled="@ViewModel.IsLoading" />
+                            <small class="form-text text-muted">
+                                Max. 5 MB, Formats: JPG, PNG, WEBP
+                            </small>
+
+                            @if (ViewModel.IsUploading)
+                            {
+                                <div class="mt-2">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>Uploading image...</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Image Sidebar -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Image</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="@ViewModel.GetImageUrl()"
+                             alt="@ViewModel.Component.Name"
+                             class="img-fluid rounded"
+                             style="max-height: 300px;"
+                             onerror="this.src='/images/placeholder-component.png'" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="/components" class="text-decoration-none">
+                <span class="bi bi-arrow-left"></span> Back to Component List
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Confirm Dialog -->
+<ConfirmDialog @ref="confirmDialog" />
+
+@code {
+    [Parameter]
+    public Guid ComponentId { get; set; }
+
+    private ConfirmDialog? confirmDialog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.LoadAsync(ComponentId);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ComponentId != ViewModel.Component?.Id)
+        {
+            await ViewModel.LoadAsync(ComponentId);
+        }
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnFileChangeAsync(InputFileChangeEventArgs e)
+    {
+        await ViewModel.HandleFileSelectedAsync(e.File);
+    }
+
+    private async Task OnSaveClickedAsync()
+    {
+        await ViewModel.SaveAsync();
+    }
+
+    private async Task OnDeleteClickedAsync()
+    {
+        if (confirmDialog != null && ViewModel.Component != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Delete Component",
+                $"Are you sure you want to delete component '{ViewModel.Component.Name}'? This action cannot be undone."
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.DeleteAsync();
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
+    }
+}

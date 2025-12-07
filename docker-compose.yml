@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  cosmosdb:
+    container_name: smt-cosmosdb-emulator
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    tty: true
+    restart: unless-stopped
+    mem_limit: 3g
+    cpu_count: 2
+    ports:
+      - "8081:8081"
+      - "10250-10255:10250-10255"
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=10
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+      - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
+    volumes:
+      - cosmos-data:/data/db
+
+volumes:
+  cosmos-data:
+    driver: local

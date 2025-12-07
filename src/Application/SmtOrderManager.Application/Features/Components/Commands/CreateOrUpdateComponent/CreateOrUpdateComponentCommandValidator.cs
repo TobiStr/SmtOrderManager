@@ -1,0 +1,17 @@
+using FluentValidation;
+
+namespace SmtOrderManager.Application.Features.Components.Commands.CreateOrUpdateComponent;
+
+public class CreateOrUpdateComponentCommandValidator : AbstractValidator<CreateOrUpdateComponentCommand>
+{
+    public CreateOrUpdateComponentCommandValidator()
+    {
+        RuleFor(x => x.Component).NotNull();
+        RuleFor(x => x.Component.Name).NotEmpty();
+        RuleFor(x => x.Component.Description).NotEmpty();
+        When(x => x.ImageStream is not null, () =>
+        {
+            RuleFor(x => x.ImageFileName).NotEmpty();
+        });
+    }
+}

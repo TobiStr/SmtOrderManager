@@ -1,0 +1,238 @@
+@page "/boards/{BoardId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using SmtOrderManager.Presentation.ViewModels
+@using SmtOrderManager.Presentation.Models.DTOs
+@using SmtOrderManager.Domain.Entities
+@inject BoardDetailViewModel ViewModel
+@implements IDisposable
+
+<PageTitle>@(ViewModel.Board?.Name ?? "Board Details") - SMT Order Manager</PageTitle>
+
+<div class="container-fluid mt-4">
+    @if (ViewModel.IsLoading && ViewModel.Board == null)
+    {
+        <LoadingSpinner Message="Loading board..." />
+    }
+    else if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage) && ViewModel.Board == null)
+    {
+        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+    }
+    else if (ViewModel.Board != null)
+    {
+        <!-- Board Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/boards">Boards</a></li>
+                        <li class="breadcrumb-item active">@ViewModel.Board.Name</li>
+                    </ol>
+                </nav>
+                <h2 class="d-flex align-items-center gap-2">
+                    <span class="bi bi-grid-3x3"></span> @ViewModel.Board.Name
+                </h2>
+                <p class="text-muted mb-0">@ViewModel.Board.Description</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-danger" @onclick="OnDeleteBoardClickedAsync" disabled="@ViewModel.IsLoading">
+                    <span class="bi bi-trash"></span> Delete board
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+        {
+            <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ViewModel.SuccessMessage))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <span class="bi bi-check-circle"></span> @ViewModel.SuccessMessage
+                <button type="button" class="btn-close" @onclick="@(() => StateHasChanged())"></button>
+            </div>
+        }
+
+        <!-- Board Info -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Dimensions</h6>
+                        <p class="card-text">
+                            <strong>@ViewModel.GetDimensions(ViewModel.Board)</strong><br />
+                            <small class="text-muted">Area: @ViewModel.GetTotalArea(ViewModel.Board).ToString("F2") mm²</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Components</h6>
+                        <p class="card-text">
+                            <strong>@ViewModel.GetComponentCount(ViewModel.Board)</strong> component(s) on this board
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Created</h6>
+                        <p class="card-text">
+                            @ViewModel.Board.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Components Section -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Components on this board</h5>
+                <button class="btn btn-primary btn-sm"
+                        @onclick="@(() => ViewModel.OpenComponentPicker())"
+                        disabled="@ViewModel.IsLoading">
+                    <span class="bi bi-plus-circle"></span> Add component
+                </button>
+            </div>
+            <div class="card-body">
+                @if (ViewModel.IsLoading)
+                {
+                    <LoadingSpinner Message="Updating components..." />
+                }
+                else if (!ViewModel.Board.Components.Any())
+                {
+                    <div class="alert alert-info">
+                        <span class="bi bi-info-circle"></span>
+                        No components on this board yet. Add components from the global library.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Quantity</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var component in ViewModel.Board.Components)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(component.ImageUrl))
+                                            {
+                                                <img src="@component.ImageUrl" alt="@component.Name" class="img-thumbnail" style="max-width: 40px; max-height: 40px;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    <span class="bi bi-cpu"></span>
+                                                </div>
+                                            }
+                                        </td>
+                                        <td><strong>@component.Name</strong></td>
+                                        <td>@component.Description</td>
+                                        <td>@ViewModel.GetQuantityForComponent(component.Id)</td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-danger ms-1"
+                                                    @onclick="@(async () => await OnRemoveComponentClickedAsync(component))"
+                                                    title="Remove">
+                                                <span class="bi bi-trash"></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Component Picker Dialog -->
+<ComponentPickerDialog IsVisible="@ViewModel.ShowComponentPicker"
+                       OnConfirm="OnComponentSelectedAsync"
+                       OnCancel="@(() => ViewModel.CloseComponentPicker())" />
+
+<!-- Confirm Dialog -->
+<ConfirmDialog @ref="confirmDialog" />
+
+@code {
+    [Parameter]
+    public Guid BoardId { get; set; }
+
+    private ConfirmDialog? confirmDialog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.LoadAsync(BoardId);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (BoardId != ViewModel.Board?.Id)
+        {
+            await ViewModel.LoadAsync(BoardId);
+        }
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnComponentSelectedAsync(ComponentSelectionResult selection)
+    {
+        await ViewModel.AddComponentToBoardAsync(selection);
+    }
+
+    private async Task OnRemoveComponentClickedAsync(Component component)
+    {
+        if (confirmDialog != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Remove component",
+                $"Remove component '{component.Name}' from this board?"
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.RemoveComponentFromBoardAsync(component.Id);
+            }
+        }
+    }
+
+    private async Task OnDeleteBoardClickedAsync()
+    {
+        if (confirmDialog != null && ViewModel.Board != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Delete board",
+                $"Delete board '{ViewModel.Board.Name}'? This action cannot be undone."
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.DeleteBoardAsync();
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
+    }
+}
