@@ -12,7 +12,7 @@ public class AddComponentToBoardCommandTests
     public async Task Handle_AppendsComponentId_AndUpsertsBoard()
     {
         var componentId = Guid.NewGuid();
-        var board = Board.Create("B1", "desc", 10, 5, Guid.NewGuid());
+        var board = Board.Create("B1", "desc", 10, 5);
         var repoMock = new Mock<IBoardRepository>();
         repoMock.Setup(r => r.GetByIdAsync(board.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(board);

@@ -12,7 +12,7 @@ public class CreateOrUpdateComponentCommandTests
     [Fact]
     public async Task Handle_UploadsImage_AndUpsertsComponent()
     {
-        var component = Component.Create("C1", "desc", 1, Guid.NewGuid());
+        var component = Component.Create("C1", "desc", 1);
         using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
 
         var repoMock = new Mock<IComponentRepository>();
