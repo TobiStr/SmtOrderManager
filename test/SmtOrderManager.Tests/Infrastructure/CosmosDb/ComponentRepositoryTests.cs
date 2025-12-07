@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SmtOrderManager.Domain.Entities;
+using SmtOrderManager.Infrastructure.BlobStorage;
 using SmtOrderManager.Infrastructure.CosmosDb;
 using SmtOrderManager.Tests.Application.TestHelpers;
 using System.Net;
@@ -139,7 +140,7 @@ public class ComponentRepositoryTests
 
         var loggerFactory = TestLoggerFactory.Create();
         var logger = loggerFactory.CreateLogger<ComponentRepository>();
-        var repo = new ComponentRepository(clientMock.Object, Options.Create(_options), logger);
+        var repo = new ComponentRepository(clientMock.Object, Options.Create(_options), Options.Create(new ImageUrlOptions()), logger);
 
         return (repo, containerMock);
     }
