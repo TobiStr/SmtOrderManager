@@ -11,7 +11,7 @@ public class CreateOrUpdateBoardCommandTests
     [Fact]
     public async Task Handle_UpsertsBoard()
     {
-        var board = Board.Create("B1", "desc", 10, 5, Guid.NewGuid());
+        var board = Board.Create("B1", "desc", 10, 5);
 
         var repoMock = new Mock<IBoardRepository>();
         repoMock.Setup(r => r.AddOrUpdateAsync(board, It.IsAny<CancellationToken>()))

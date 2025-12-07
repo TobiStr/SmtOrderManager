@@ -11,7 +11,7 @@ public class GetAllBoardsQueryTests
     [Fact]
     public async Task Handle_ReturnsAllBoards()
     {
-        var boards = new[] { Board.Create("B1", "desc", 10, 5, Guid.NewGuid()) };
+        var boards = new[] { Board.Create("B1", "desc", 10, 5) };
 
         var repoMock = new Mock<IBoardRepository>();
         repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))

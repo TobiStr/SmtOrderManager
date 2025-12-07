@@ -1,0 +1,175 @@
+@page "/components"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using SmtOrderManager.Presentation.ViewModels
+@using SmtOrderManager.Domain.Entities
+@inject ComponentListViewModel ViewModel
+@implements IDisposable
+
+<PageTitle>Components - SMT Order Manager</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>⚡ Component Library</h2>
+            <p class="text-muted">Global management of all available parts</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="ViewModel.NavigateToCreate">
+                <span class="bi bi-plus-circle"></span> New Component
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+    {
+        <ErrorAlert ErrorMessage="@ViewModel.ErrorMessage" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(ViewModel.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span class="bi bi-check-circle"></span> @ViewModel.SuccessMessage
+            <button type="button" class="btn-close" @onclick="@(() => StateHasChanged())"></button>
+        </div>
+    }
+
+    <!-- Search Filter -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><span class="bi bi-search"></span></span>
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search name or description..."
+                       @bind="ViewModel.SearchTerm"
+                       @bind:event="oninput"
+                       @onkeyup="@(() => ViewModel.ApplySearch())" />
+                @if (!string.IsNullOrWhiteSpace(ViewModel.SearchTerm))
+                {
+                    <button class="btn btn-outline-secondary" @onclick="ViewModel.ClearSearch">
+                        <span class="bi bi-x"></span>
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <span class="badge bg-secondary">@ViewModel.FilteredCount of @ViewModel.TotalCount Components</span>
+        </div>
+    </div>
+
+    @if (ViewModel.IsLoading)
+    {
+        <LoadingSpinner Message="Loading components..." />
+    }
+    else if (!ViewModel.FilteredComponents.Any())
+    {
+        <div class="alert alert-info">
+            <span class="bi bi-info-circle"></span>
+            @if (string.IsNullOrWhiteSpace(ViewModel.SearchTerm))
+            {
+                <text>No components available yet. Create your first component!</text>
+            }
+            else
+            {
+                <text>No components found for "@ViewModel.SearchTerm"</text>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Component Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Default Quantity</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var component in ViewModel.FilteredComponents)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(component.ImageUrl))
+                                {
+                                    <img src="@component.ImageUrl" alt="@component.Name" class="img-thumbnail" style="max-width: 50px; max-height: 50px;" />
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <span class="bi bi-cpu"></span>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <strong>@component.Name</strong>
+                            </td>
+                            <td>@component.Description</td>
+                            <td>@component.Quantity</td>
+                            <td>
+                                <small class="text-muted">@component.CreatedAt.ToString("dd.MM.yyyy")</small>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        @onclick="@(() => ViewModel.NavigateToDetail(component.Id))"
+                                        title="View details">
+                                    <span class="bi bi-pencil"></span> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger ms-1"
+                                        @onclick="@(async () => await OnDeleteClickedAsync(component))"
+                                        title="Delete">
+                                    <span class="bi bi-trash"></span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Confirm Dialog -->
+<ConfirmDialog @ref="confirmDialog" />
+
+@code {
+    private ConfirmDialog? confirmDialog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.StateChanged += OnViewModelStateChanged;
+        await ViewModel.LoadAsync();
+    }
+
+    private void OnViewModelStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnDeleteClickedAsync(Component component)
+    {
+        if (confirmDialog != null)
+        {
+            var confirmed = await confirmDialog.ShowAsync(
+                "Delete Component",
+                $"Are you sure you want to delete component '{component.Name}'? This action cannot be undone."
+            );
+
+            if (confirmed)
+            {
+                await ViewModel.DeleteComponentAsync(component.Id);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        ViewModel.StateChanged -= OnViewModelStateChanged;
+    }
+}

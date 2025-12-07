@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using SmtOrderManager.Domain.Primitives;
 
 namespace SmtOrderManager.Domain.Entities;
@@ -10,31 +11,37 @@ public record User : Entity
     /// <summary>
     /// Gets the email address of the user (must be unique).
     /// </summary>
+    [JsonProperty("email")]
     public required string Email { get; init; }
 
     /// <summary>
     /// Gets the name of the user.
     /// </summary>
+    [JsonProperty("name")]
     public required string Name { get; init; }
 
     /// <summary>
     /// Gets the hashed password of the user.
     /// </summary>
+    [JsonProperty("passwordHash")]
     public required string PasswordHash { get; init; }
 
     /// <summary>
     /// Gets the timestamp of the last login.
     /// </summary>
+    [JsonProperty("lastLoginAt")]
     public DateTime? LastLoginAt { get; init; }
 
     /// <summary>
     /// Gets the collection of orderIds created by this user. (persisted to database)
     /// </summary>
+    [JsonProperty("orderIds")]
     public IReadOnlyList<Guid> OrderIds { get; init; } = Array.Empty<Guid>();
 
     /// <summary>
     /// Gets the collection of orders created by this user. (not persisted to database)
     /// </summary>
+    [JsonIgnore]
     public IReadOnlyList<Order> Orders { get; init; } = Array.Empty<Order>();
 
     /// <summary>

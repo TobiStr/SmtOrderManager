@@ -29,7 +29,7 @@ public class OrderRepositoryTests
         {
             BoardIds = new List<Guid> { Guid.NewGuid() }
         };
-        var board = Board.Create("B1", "desc", 10, 5, order.Id);
+        var board = Board.Create("B1", "desc", 10, 5);
 
         var boardRepoMock = new Mock<IBoardRepository>();
         boardRepoMock.Setup(r => r.GetByIdsAsync(order.BoardIds, It.IsAny<CancellationToken>()))
@@ -55,7 +55,7 @@ public class OrderRepositoryTests
     public async Task AddOrUpdateAsync_UpsertsOrder()
     {
         var order = Order.Create("order", DateTime.UtcNow, Guid.NewGuid());
-        var board = Board.Create("B1", "desc", 10, 5, order.Id);
+        var board = Board.Create("B1", "desc", 10, 5);
         order = order with { Boards = new List<Board> { board } };
 
         var boardRepoMock = new Mock<IBoardRepository>();

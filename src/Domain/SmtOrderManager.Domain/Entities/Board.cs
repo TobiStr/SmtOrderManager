@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using SmtOrderManager.Domain.Primitives;
 
 namespace SmtOrderManager.Domain.Entities;
@@ -10,42 +11,43 @@ public record Board : Entity
     /// <summary>
     /// Gets the name of the board (must be unique).
     /// </summary>
+    [JsonProperty("name")]
     public required string Name { get; init; }
 
     /// <summary>
     /// Gets the description of the board.
     /// </summary>
+    [JsonProperty("description")]
     public required string Description { get; init; }
 
     /// <summary>
     /// Gets the length of the board in millimeters.
     /// </summary>
+    [JsonProperty("length")]
     public required decimal Length { get; init; }
 
     /// <summary>
     /// Gets the width of the board in millimeters.
     /// </summary>
+    [JsonProperty("width")]
     public required decimal Width { get; init; }
-
-    /// <summary>
-    /// Gets the ID of the order this board belongs to.
-    /// </summary>
-    public required Guid OrderId { get; init; }
 
     /// <summary>
     /// Gets the collection of component IDs on this board (persisted to database).
     /// </summary>
+    [JsonProperty("componentIds")]
     public IReadOnlyList<Guid> ComponentIds { get; init; } = Array.Empty<Guid>();
 
     /// <summary>
     /// Gets the collection of components on this board (populated on retrieval, not persisted).
     /// </summary>
+    [JsonIgnore]
     public IReadOnlyList<Component> Components { get; init; } = Array.Empty<Component>();
 
     /// <summary>
     /// Creates a new board with validation.
     /// </summary>
-    public static Board Create(string name, string description, decimal length, decimal width, Guid orderId)
+    public static Board Create(string name, string description, decimal length, decimal width)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Board name cannot be empty.", nameof(name));
@@ -59,9 +61,6 @@ public record Board : Entity
         if (width <= 0)
             throw new ArgumentException("Board width must be greater than zero.", nameof(width));
 
-        if (orderId == Guid.Empty)
-            throw new ArgumentException("Order ID cannot be empty.", nameof(orderId));
-
         return new Board
         {
             Id = UuidV7Generator.Generate(),
@@ -69,7 +68,6 @@ public record Board : Entity
             Description = description,
             Length = length,
             Width = width,
-            OrderId = orderId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,
             ComponentIds = Array.Empty<Guid>(),
@@ -84,9 +82,6 @@ public record Board : Entity
     {
         if (component == null)
             throw new ArgumentNullException(nameof(component));
-
-        if (component.BoardId != Id)
-            throw new InvalidOperationException("Component does not belong to this board.");
 
         if (ComponentIds.Contains(component.Id))
             throw new InvalidOperationException("Component already exists on this board.");

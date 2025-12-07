@@ -11,7 +11,7 @@ public class GetComponentByIdQueryTests
     [Fact]
     public async Task Handle_ReturnsComponent()
     {
-        var component = Component.Create("C1", "desc", 1, Guid.NewGuid());
+        var component = Component.Create("C1", "desc", 1);
 
         var repoMock = new Mock<IComponentRepository>();
         repoMock.Setup(r => r.GetByIdAsync(component.Id, It.IsAny<CancellationToken>()))

@@ -201,13 +201,12 @@ public class ComponentRepository : IComponentRepository
         {
             await _container.UpsertItemAsync(
                 component,
-                new PartitionKey(component.BoardId.ToString()),
+                new PartitionKey(component.Id.ToString()),
                 cancellationToken: cancellationToken);
 
             _logger.LogInformation(
-                "Component upserted successfully with ID: {ComponentId} for Board ID: {BoardId}",
-                component.Id,
-                component.BoardId);
+                "Component upserted successfully with ID: {ComponentId}",
+                component.Id);
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -248,7 +247,7 @@ public class ComponentRepository : IComponentRepository
 
             await _container.DeleteItemAsync<Component>(
                 id.ToString(),
-                new PartitionKey(component.BoardId.ToString()),
+                new PartitionKey(component.Id.ToString()),
                 cancellationToken: cancellationToken);
 
             _logger.LogInformation("Component deleted successfully with ID: {ComponentId}", id);

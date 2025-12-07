@@ -24,7 +24,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task GetByIdAsync_ReturnsComponent_WhenFound()
     {
-        var component = Component.Create("C1", "desc", 1, Guid.NewGuid());
+        var component = Component.Create("C1", "desc", 1);
         var (repo, containerMock) = CreateRepository();
 
         containerMock
@@ -63,13 +63,13 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task AddOrUpdateAsync_Upserts_Component()
     {
-        var component = Component.Create("C1", "desc", 1, Guid.NewGuid());
+        var component = Component.Create("C1", "desc", 1);
         var (repo, containerMock) = CreateRepository();
 
         containerMock
             .Setup(c => c.UpsertItemAsync(
                 component,
-                It.Is<PartitionKey>(pk => pk.Equals(new PartitionKey(component.BoardId.ToString()))),
+                It.Is<PartitionKey>(pk => pk.Equals(new PartitionKey(component.Id.ToString()))),
                 null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CosmosTestHelpers.CreateItemResponse(component));
@@ -87,7 +87,7 @@ public class ComponentRepositoryTests
     [Fact]
     public async Task GetByIdsAsync_ReturnsList_WhenFound()
     {
-        var component = Component.Create("C1", "desc", 1, Guid.NewGuid());
+        var component = Component.Create("C1", "desc", 1);
         var feedResponse = CosmosTestHelpers.CreateFeedResponse(new[] { component });
         var feedIterator = CosmosTestHelpers.CreateFeedIterator(feedResponse);
 

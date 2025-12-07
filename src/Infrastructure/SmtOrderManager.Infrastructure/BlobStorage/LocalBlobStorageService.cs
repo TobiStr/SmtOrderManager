@@ -62,8 +62,15 @@ public class LocalBlobStorageService : IBlobStorageService
 
     public string GetBlobUrl(string blobName)
     {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("GetBlobUrl for blob: {BlobName}", blobName);
+        }
+
         var path = GetPath(blobName);
-        return path;
+
+        // Return relative URL for web access
+        return $"/uploads/{blobName}";
     }
 
     public async Task<Result> UploadAsync(string blobName, Stream content, CancellationToken cancellationToken = default)
@@ -84,10 +91,7 @@ public class LocalBlobStorageService : IBlobStorageService
                 await content.CopyToAsync(fileStream, cancellationToken);
             }
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug("Local UploadAsync completed for blob: {BlobName}", blobName);
-            }
+            _logger.LogInformation("Local blob '{BlobName}' uploaded successfully to: {Path}", blobName, path);
 
             return Result.Ok;
         }

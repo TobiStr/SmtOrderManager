@@ -1,6 +1,11 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+@using Microsoft.AspNetCore.Components.Authorization
+@using SmtOrderManager.Presentation.Services
+@inject CustomAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">SmtOrderManager.Presentation</a>
+        <a class="navbar-brand" href="">SMT Order Manager</a>
     </div>
 </div>
 
@@ -8,23 +13,82 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                <!-- Authenticated User Menu -->
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    </NavLink>
+                </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="orders">
+                        <span class="bi bi-list-check" aria-hidden="true"></span> Orders
+                    </NavLink>
+                </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="boards">
+                        <span class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></span> Boards
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="components">
+                        <span class="bi bi-cpu-fill" aria-hidden="true"></span> Components
+                    </NavLink>
+                </div>
+
+                <div class="nav-separator"></div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="profile">
+                        <span class="bi bi-person-circle" aria-hidden="true"></span> Profile
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <a class="nav-link" href="javascript:void(0)" @onclick="HandleLogout">
+                        <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+                    </a>
+                </div>
+
+                <div class="nav-item px-3 mt-3">
+                    <div class="text-muted small">
+                        Logged in as:<br />
+                        <strong>@context.User.Identity?.Name</strong>
+                    </div>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <!-- Not Authenticated Menu -->
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="register">
+                        <span class="bi bi-person-plus" aria-hidden="true"></span> Register
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3 mt-3">
+                    <div class="alert alert-warning small">
+                        Please sign in to use the application.
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </nav>
 </div>
 
+@code {
+    private async Task HandleLogout()
+    {
+        await AuthStateProvider.MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/login");
+    }
+}

@@ -25,11 +25,11 @@ public class BoardRepositoryTests
     [Fact]
     public async Task GetByIdAsync_ReturnsBoard_WithComponents()
     {
-        var board = Board.Create("B1", "desc", 10, 5, Guid.NewGuid()) with
+        var board = Board.Create("B1", "desc", 10, 5) with
         {
             ComponentIds = new List<Guid> { Guid.NewGuid() }
         };
-        var component = Component.Create("C1", "desc", 1, board.Id);
+        var component = Component.Create("C1", "desc", 1);
 
         var componentRepoMock = new Mock<IComponentRepository>();
         componentRepoMock.Setup(r => r.GetByIdsAsync(board.ComponentIds, It.IsAny<CancellationToken>()))
@@ -54,8 +54,8 @@ public class BoardRepositoryTests
     [Fact]
     public async Task AddOrUpdateAsync_UpsertsBoard()
     {
-        var board = Board.Create("B1", "desc", 10, 5, Guid.NewGuid());
-        var component = Component.Create("C1", "desc", 1, board.Id);
+        var board = Board.Create("B1", "desc", 10, 5);
+        var component = Component.Create("C1", "desc", 1);
         board = board with { Components = new List<Component> { component } };
 
         var componentRepoMock = new Mock<IComponentRepository>();
