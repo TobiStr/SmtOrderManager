@@ -81,7 +81,7 @@ public class ComponentCreateViewModel
         {
             var buffer = new byte[file.Size];
             await using var stream = file.OpenReadStream(maxFileSize);
-            await stream.ReadAsync(buffer);
+            await stream.ReadExactlyAsync(buffer, CancellationToken.None);
             var base64 = Convert.ToBase64String(buffer);
             FilePreviewUrl = $"data:{file.ContentType};base64,{base64}";
         }

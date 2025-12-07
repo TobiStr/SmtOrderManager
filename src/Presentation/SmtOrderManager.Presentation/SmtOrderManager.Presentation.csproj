@@ -12,4 +12,8 @@
     <ProjectReference Include="..\..\Infrastructure\SmtOrderManager.Infrastructure\SmtOrderManager.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+  </ItemGroup>
+
 </Project>
