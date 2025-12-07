@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using SmtOrderManager.Domain.Primitives;
 
 namespace SmtOrderManager.Domain.Entities;
@@ -10,36 +11,43 @@ public record Board : Entity
     /// <summary>
     /// Gets the name of the board (must be unique).
     /// </summary>
+    [JsonProperty("name")]
     public required string Name { get; init; }
 
     /// <summary>
     /// Gets the description of the board.
     /// </summary>
+    [JsonProperty("description")]
     public required string Description { get; init; }
 
     /// <summary>
     /// Gets the length of the board in millimeters.
     /// </summary>
+    [JsonProperty("length")]
     public required decimal Length { get; init; }
 
     /// <summary>
     /// Gets the width of the board in millimeters.
     /// </summary>
+    [JsonProperty("width")]
     public required decimal Width { get; init; }
 
     /// <summary>
     /// Gets the ID of the order this board belongs to.
     /// </summary>
+    [JsonProperty("orderId")]
     public required Guid OrderId { get; init; }
 
     /// <summary>
     /// Gets the collection of component IDs on this board (persisted to database).
     /// </summary>
+    [JsonProperty("componentIds")]
     public IReadOnlyList<Guid> ComponentIds { get; init; } = Array.Empty<Guid>();
 
     /// <summary>
     /// Gets the collection of components on this board (populated on retrieval, not persisted).
     /// </summary>
+    [JsonIgnore]
     public IReadOnlyList<Component> Components { get; init; } = Array.Empty<Component>();
 
     /// <summary>

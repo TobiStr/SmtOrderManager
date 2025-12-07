@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using SmtOrderManager.Domain.Primitives;
 
 namespace SmtOrderManager.Domain.Entities;
@@ -10,26 +11,31 @@ public record Component : Entity
     /// <summary>
     /// Gets the name of the component (must be unique).
     /// </summary>
+    [JsonProperty("name")]
     public required string Name { get; init; }
 
     /// <summary>
     /// Gets the description of the component.
     /// </summary>
+    [JsonProperty("description")]
     public required string Description { get; init; }
 
     /// <summary>
     /// Gets the quantity of this component.
     /// </summary>
+    [JsonProperty("quantity")]
     public required int Quantity { get; init; }
 
     /// <summary>
     /// Gets the optional URL reference to the component image in blob storage.
     /// </summary>
+    [JsonProperty("imageUrl")]
     public string? ImageUrl { get; init; }
 
     /// <summary>
     /// Gets the ID of the board this component belongs to.
     /// </summary>
+    [JsonProperty("boardId")]
     public required Guid BoardId { get; init; }
 
     /// <summary>

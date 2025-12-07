@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using SmtOrderManager.Domain.Primitives;
 using SmtOrderManager.Domain.Enums;
 
@@ -11,31 +12,37 @@ public record Order : Entity
     /// <summary>
     /// Gets the description of the order.
     /// </summary>
+    [JsonProperty("description")]
     public required string Description { get; init; }
 
     /// <summary>
     /// Gets the date when the order was placed.
     /// </summary>
+    [JsonProperty("orderDate")]
     public required DateTime OrderDate { get; init; }
 
     /// <summary>
     /// Gets the current status of the order.
     /// </summary>
+    [JsonProperty("status")]
     public required OrderStatus Status { get; init; }
 
     /// <summary>
     /// Gets the ID of the user who created this order.
     /// </summary>
+    [JsonProperty("userId")]
     public required Guid UserId { get; init; }
 
     /// <summary>
     /// Gets the collection of board IDs in this order (persisted to database).
     /// </summary>
+    [JsonProperty("boardIds")]
     public IReadOnlyList<Guid> BoardIds { get; init; } = Array.Empty<Guid>();
 
     /// <summary>
     /// Gets the collection of boards in this order (populated on retrieval, not persisted).
     /// </summary>
+    [JsonIgnore]
     public IReadOnlyList<Board> Boards { get; init; } = Array.Empty<Board>();
 
     /// <summary>
