@@ -7,7 +7,7 @@ using SmtOrderManager.Domain.Entities;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für die Erstellung neuer Components
+/// ViewModel for creating new components
 /// </summary>
 public class ComponentCreateViewModel
 {
@@ -39,7 +39,7 @@ public class ComponentCreateViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Behandelt die Dateiauswahl
+    /// Handles file selection
     /// </summary>
     public async Task HandleFileSelectedAsync(IBrowserFile? file)
     {
@@ -53,11 +53,11 @@ public class ComponentCreateViewModel
             return;
         }
 
-        // Validierung
+        // Validation
         var maxFileSize = 5 * 1024 * 1024; // 5 MB
         if (file.Size > maxFileSize)
         {
-            ErrorMessage = "Die Datei ist zu groß. Maximal 5 MB erlaubt.";
+            ErrorMessage = "File is too large. Maximum 5 MB allowed.";
             SelectedFile = null;
             FilePreviewUrl = null;
             NotifyStateChanged();
@@ -68,14 +68,14 @@ public class ComponentCreateViewModel
         var extension = Path.GetExtension(file.Name).ToLowerInvariant();
         if (!allowedExtensions.Contains(extension))
         {
-            ErrorMessage = $"Ungültiges Dateiformat. Erlaubt: {string.Join(", ", allowedExtensions)}";
+            ErrorMessage = $"Invalid file format. Allowed: {string.Join(", ", allowedExtensions)}";
             SelectedFile = null;
             FilePreviewUrl = null;
             NotifyStateChanged();
             return;
         }
 
-        // Preview erstellen (als Data URL)
+        // Create preview (as Data URL)
         try
         {
             var buffer = new byte[file.Size];
@@ -86,7 +86,7 @@ public class ComponentCreateViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Vorschau: {ex.Message}";
+            ErrorMessage = $"Error loading preview: {ex.Message}";
             FilePreviewUrl = null;
         }
 
@@ -94,13 +94,13 @@ public class ComponentCreateViewModel
     }
 
     /// <summary>
-    /// Erstellt eine neue Component
+    /// Creates a new component
     /// </summary>
     public async Task CreateComponentAsync()
     {
         if (!CanCreate())
         {
-            ErrorMessage = "Bitte füllen Sie alle Pflichtfelder aus.";
+            ErrorMessage = "Please fill in all required fields.";
             NotifyStateChanged();
             return;
         }
@@ -112,16 +112,16 @@ public class ComponentCreateViewModel
 
         try
         {
-            // WICHTIG: Component muss einem Board zugeordnet sein
-            // Für globale Components verwenden wir ein spezielles "Global Board"
-            // oder setzen BoardId auf einen Standardwert
-            // Hier: Wir erstellen eine Component OHNE Board (BoardId = Guid.Empty oder null)
-            // Dies muss dann später einem Board zugeordnet werden
+            // IMPORTANT: Component must be assigned to a board
+            // For global components we use a special "Global Board"
+            // or set BoardId to a default value
+            // Here: We create a component WITHOUT board (BoardId = Guid.Empty or null)
+            // This must then be assigned to a board later
 
             var component = Component.Create(
                 Name.Trim(),
                 Description.Trim(),
-                null // ImageUrl wird vom Command gesetzt
+                null // ImageUrl will be set by the command
             );
 
             Stream? imageStream = null;
@@ -141,10 +141,10 @@ public class ComponentCreateViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Component erfolgreich erstellt!";
+                SuccessMessage = "Component created successfully!";
                 NotifyStateChanged();
 
-                // Kurz warten, dann zur Liste navigieren
+                // Wait briefly, then navigate to list
                 await Task.Delay(1500);
                 _navigationManager.NavigateTo("/components");
             }
@@ -155,7 +155,7 @@ public class ComponentCreateViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Erstellen der Component: {ex.Message}";
+            ErrorMessage = $"Error creating component: {ex.Message}";
         }
         finally
         {
@@ -166,7 +166,7 @@ public class ComponentCreateViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Component-Liste
+    /// Navigates to component list
     /// </summary>
     public void Cancel()
     {
@@ -174,7 +174,7 @@ public class ComponentCreateViewModel
     }
 
     /// <summary>
-    /// Prüft, ob die Component erstellt werden kann
+    /// Checks if the component can be created
     /// </summary>
     public bool CanCreate()
     {

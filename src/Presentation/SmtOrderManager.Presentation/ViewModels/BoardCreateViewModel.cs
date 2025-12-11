@@ -52,7 +52,7 @@ public class BoardCreateViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler: {ex.Message}";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {

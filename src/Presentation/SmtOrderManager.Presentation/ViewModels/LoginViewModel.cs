@@ -7,7 +7,7 @@ using SmtOrderManager.Presentation.Services;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für den Login
+/// ViewModel for login
 /// </summary>
 public class LoginViewModel
 {
@@ -26,12 +26,12 @@ public class LoginViewModel
     }
 
     // Properties
-    [Required(ErrorMessage = "E-Mail ist erforderlich")]
-    [EmailAddress(ErrorMessage = "Ungültige E-Mail-Adresse")]
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email address")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Passwort ist erforderlich")]
-    [MinLength(6, ErrorMessage = "Passwort muss mindestens 6 Zeichen lang sein")]
+    [Required(ErrorMessage = "Password is required")]
+    [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
     public string Password { get; set; } = string.Empty;
 
     public bool RememberMe { get; set; }
@@ -43,7 +43,7 @@ public class LoginViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Führt Login aus
+    /// Executes login
     /// </summary>
     public async Task LoginAsync()
     {
@@ -68,12 +68,12 @@ public class LoginViewModel
             }
             else
             {
-                ErrorMessage = result.ErrorMessage ?? "Login fehlgeschlagen. Bitte überprüfen Sie Ihre Zugangsdaten.";
+                ErrorMessage = result.ErrorMessage ?? "Login failed. Please check your credentials.";
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Login: {ex.Message}";
+            ErrorMessage = $"Error during login: {ex.Message}";
         }
         finally
         {
@@ -83,7 +83,7 @@ public class LoginViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Registrierung
+    /// Navigates to registration
     /// </summary>
     public void NavigateToRegister()
     {

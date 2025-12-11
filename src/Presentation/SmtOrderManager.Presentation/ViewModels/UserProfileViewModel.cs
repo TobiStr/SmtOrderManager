@@ -10,7 +10,7 @@ using SmtOrderManager.Presentation.Models.DTOs;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für das User-Profil
+/// ViewModel for user profile
 /// </summary>
 public class UserProfileViewModel
 {
@@ -35,22 +35,22 @@ public class UserProfileViewModel
     public string? SuccessMessage { get; private set; }
 
     // Password Change Properties
-    [Required(ErrorMessage = "Aktuelles Passwort ist erforderlich")]
+    [Required(ErrorMessage = "Current password is required")]
     public string CurrentPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Neues Passwort ist erforderlich")]
-    [MinLength(6, ErrorMessage = "Passwort muss mindestens 6 Zeichen lang sein")]
+    [Required(ErrorMessage = "New password is required")]
+    [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
     public string NewPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Passwort-Wiederholung ist erforderlich")]
-    [Compare(nameof(NewPassword), ErrorMessage = "Passwörter stimmen nicht überein")]
+    [Required(ErrorMessage = "Password confirmation is required")]
+    [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match")]
     public string ConfirmNewPassword { get; set; } = string.Empty;
 
     // Events
     public event Action? StateChanged;
 
     /// <summary>
-    /// Lädt das User-Profil des aktuell angemeldeten Users
+    /// Loads the user profile of the currently logged in user
     /// </summary>
     public async Task LoadAsync()
     {
@@ -63,7 +63,7 @@ public class UserProfileViewModel
             var email = _currentUserService.GetEmail();
             if (string.IsNullOrWhiteSpace(email))
             {
-                ErrorMessage = "Nicht angemeldet. Bitte melden Sie sich an.";
+                ErrorMessage = "Not logged in. Please log in.";
                 IsLoading = false;
                 NotifyStateChanged();
                 return;
@@ -76,7 +76,7 @@ public class UserProfileViewModel
             {
                 var user = result.GetOk();
 
-                // Convert to UserDto (für Sicherheit - ohne PasswordHash)
+                // Convert to UserDto (for security - without PasswordHash)
                 User = new UserDto
                 {
                     Id = user.Id,
@@ -96,7 +96,7 @@ public class UserProfileViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden des Profils: {ex.Message}";
+            ErrorMessage = $"Error loading profile: {ex.Message}";
             User = null;
         }
         finally
@@ -107,7 +107,7 @@ public class UserProfileViewModel
     }
 
     /// <summary>
-    /// Ändert das Passwort des aktuellen Users
+    /// Changes the password of the current user
     /// </summary>
     public async Task ChangePasswordAsync()
     {
@@ -125,7 +125,7 @@ public class UserProfileViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Passwort erfolgreich geändert.";
+                SuccessMessage = "Password changed successfully.";
 
                 // Reset password fields
                 CurrentPassword = string.Empty;
@@ -139,7 +139,7 @@ public class UserProfileViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Ändern des Passworts: {ex.Message}";
+            ErrorMessage = $"Error changing password: {ex.Message}";
         }
         finally
         {
@@ -149,7 +149,7 @@ public class UserProfileViewModel
     }
 
     /// <summary>
-    /// Prüft, ob das Passwort geändert werden kann
+    /// Checks if the password can be changed
     /// </summary>
     public bool CanChangePassword()
     {
@@ -160,7 +160,7 @@ public class UserProfileViewModel
     }
 
     /// <summary>
-    /// Setzt die Passwort-Felder zurück
+    /// Resets the password fields
     /// </summary>
     public void ResetPasswordFields()
     {
