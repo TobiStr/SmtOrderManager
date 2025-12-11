@@ -6,7 +6,7 @@ using SmtOrderManager.Application.Features.Users.Commands.RegisterUser;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für die Registrierung
+/// ViewModel for registration
 /// </summary>
 public class RegisterViewModel
 {
@@ -20,20 +20,20 @@ public class RegisterViewModel
     }
 
     // Properties
-    [Required(ErrorMessage = "E-Mail ist erforderlich")]
-    [EmailAddress(ErrorMessage = "Ungültige E-Mail-Adresse")]
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email address")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Name ist erforderlich")]
-    [MinLength(2, ErrorMessage = "Name muss mindestens 2 Zeichen lang sein")]
+    [Required(ErrorMessage = "Name is required")]
+    [MinLength(2, ErrorMessage = "Name must be at least 2 characters long")]
     public string Name { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Passwort ist erforderlich")]
-    [MinLength(6, ErrorMessage = "Passwort muss mindestens 6 Zeichen lang sein")]
+    [Required(ErrorMessage = "Password is required")]
+    [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
     public string Password { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Passwort-Wiederholung ist erforderlich")]
-    [Compare(nameof(Password), ErrorMessage = "Passwörter stimmen nicht überein")]
+    [Required(ErrorMessage = "Password confirmation is required")]
+    [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = string.Empty;
 
     public bool IsLoading { get; private set; }
@@ -44,7 +44,7 @@ public class RegisterViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Führt Registrierung aus
+    /// Executes registration
     /// </summary>
     public async Task RegisterAsync()
     {
@@ -60,10 +60,10 @@ public class RegisterViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Registrierung erfolgreich! Sie werden zum Login weitergeleitet...";
+                SuccessMessage = "Registration successful! Redirecting to login...";
                 NotifyStateChanged();
 
-                // Warte 2 Sekunden, dann navigiere zu Login
+                // Wait 2 seconds, then navigate to login
                 await Task.Delay(2000);
                 _navigationManager.NavigateTo("/login");
             }
@@ -74,7 +74,7 @@ public class RegisterViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler bei der Registrierung: {ex.Message}";
+            ErrorMessage = $"Error during registration: {ex.Message}";
         }
         finally
         {
@@ -84,7 +84,7 @@ public class RegisterViewModel
     }
 
     /// <summary>
-    /// Navigiert zum Login
+    /// Navigates to login
     /// </summary>
     public void NavigateToLogin()
     {

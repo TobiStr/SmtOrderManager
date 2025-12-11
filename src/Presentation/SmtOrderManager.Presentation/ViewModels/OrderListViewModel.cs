@@ -9,7 +9,7 @@ using SmtOrderManager.Domain.Enums;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für die Order-Übersicht
+/// ViewModel for order overview
 /// </summary>
 public class OrderListViewModel
 {
@@ -51,7 +51,7 @@ public class OrderListViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Lädt alle Orders
+    /// Loads all orders
     /// </summary>
     public async Task LoadAsync()
     {
@@ -68,7 +68,7 @@ public class OrderListViewModel
             if (result.Success)
             {
                 var orders = result.GetOk();
-                AllOrders = orders.ToList(); // Direkt Domain-Entities
+                AllOrders = orders.ToList(); // Direct Domain-Entities
                 ErrorMessage = null;
             }
             else
@@ -79,7 +79,7 @@ public class OrderListViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Orders: {ex.Message}";
+            ErrorMessage = $"Error loading orders: {ex.Message}";
             AllOrders = new List<Order>();
         }
         finally
@@ -90,7 +90,7 @@ public class OrderListViewModel
     }
 
     /// <summary>
-    /// Wendet Filter an
+    /// Applies filters
     /// </summary>
     public void ApplyFilter()
     {
@@ -98,7 +98,7 @@ public class OrderListViewModel
     }
 
     /// <summary>
-    /// Setzt alle Filter zurück
+    /// Resets all filters
     /// </summary>
     public void ClearFilters()
     {
@@ -110,7 +110,7 @@ public class OrderListViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Order-Detail-Seite
+    /// Navigates to order detail page
     /// </summary>
     public void NavigateToDetail(Guid orderId)
     {
@@ -118,22 +118,22 @@ public class OrderListViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Order-Create-Seite
+    /// Navigates to order create page
     /// </summary>
     public void NavigateToCreate()
     {
         _navigationManager.NavigateTo("/orders/create");
     }
 
-    // UI-Helper Methods (statt DTO-Properties)
+    // UI-Helper Methods (instead of DTO-Properties)
     public string GetStatusDisplayText(Order order) => order.Status switch
     {
-        OrderStatus.Draft => "📝 Entwurf",
-        OrderStatus.Submitted => "📤 Eingereicht",
-        OrderStatus.InProduction => "🔧 In Produktion",
-        OrderStatus.Completed => "✅ Fertig",
-        OrderStatus.Cancelled => "❌ Storniert",
-        OrderStatus.Archived => "📦 Archiviert",
+        OrderStatus.Draft => "📝 Draft",
+        OrderStatus.Submitted => "📤 Submitted",
+        OrderStatus.InProduction => "🔧 In Production",
+        OrderStatus.Completed => "✅ Completed",
+        OrderStatus.Cancelled => "❌ Cancelled",
+        OrderStatus.Archived => "📦 Archived",
         _ => order.Status.ToString()
     };
 
