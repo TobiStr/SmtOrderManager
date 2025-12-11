@@ -1,6 +1,33 @@
 version: '3.8'
 
 services:
+  # Blazor Server Web App
+  web:
+    container_name: smt-order-manager-web
+    build:
+      context: .
+      dockerfile: src/Presentation/SmtOrderManager.Presentation/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      # Cosmos DB Emulator Connection (when using emulator service below)
+      - ConnectionStrings__CosmosDb=AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+      # For Azure Cosmos DB, use your actual connection string instead:
+      # - ConnectionStrings__CosmosDb=YOUR_AZURE_COSMOS_CONNECTION_STRING
+      - ImageStorage__Provider=LocalFileSystem
+      - ImageStorage__LocalFileSystemSettings__BasePath=/app/wwwroot/uploads/component-images
+    volumes:
+      # Persist uploaded images
+      - image-uploads:/app/wwwroot/uploads
+    depends_on:
+      - cosmosdb
+    restart: unless-stopped
+    networks:
+      - smt-network
+
+  # Cosmos DB Emulator (for local development)
   cosmosdb:
     container_name: smt-cosmosdb-emulator
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
@@ -17,7 +44,15 @@ services:
       - AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1
     volumes:
       - cosmos-data:/data/db
+    networks:
+      - smt-network
 
 volumes:
   cosmos-data:
     driver: local
+  image-uploads:
+    driver: local
+
+networks:
+  smt-network:
+    driver: bridge

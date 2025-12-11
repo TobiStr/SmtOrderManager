@@ -12,7 +12,7 @@ using SmtOrderManager.Presentation.Models.DTOs;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für Board-Details mit Component-Zuordnung
+/// ViewModel for board details with component assignment
 /// </summary>
 public class BoardDetailViewModel
 {
@@ -38,7 +38,7 @@ public class BoardDetailViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Lädt Board-Details inklusive zugeordneter Components
+    /// Loads board details including assigned components
     /// </summary>
     public async Task LoadAsync(Guid boardId)
     {
@@ -64,7 +64,7 @@ public class BoardDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden des Boards: {ex.Message}";
+            ErrorMessage = $"Error loading board: {ex.Message}";
             Board = null;
         }
         finally
@@ -93,7 +93,7 @@ public class BoardDetailViewModel
 
             if (result.Success)
             {
-                SuccessMessage = $"Component '{selection.ComponentName}' erfolgreich hinzugefügt.";
+                SuccessMessage = $"Component '{selection.ComponentName}' added successfully.";
                 ShowComponentPicker = false;
 
                 // Reload board to get updated components
@@ -106,7 +106,7 @@ public class BoardDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Hinzufügen der Component: {ex.Message}";
+            ErrorMessage = $"Error adding component: {ex.Message}";
         }
         finally
         {
@@ -134,7 +134,7 @@ public class BoardDetailViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Component erfolgreich aktualisiert.";
+                SuccessMessage = "Component updated successfully.";
                 await LoadAsync(Board.Id);
             }
             else
@@ -144,7 +144,7 @@ public class BoardDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Aktualisieren der Component: {ex.Message}";
+            ErrorMessage = $"Error updating component: {ex.Message}";
         }
         finally
         {
@@ -170,7 +170,7 @@ public class BoardDetailViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Component erfolgreich entfernt.";
+                SuccessMessage = "Component removed successfully.";
 
                 if (Board != null)
                 {
@@ -184,7 +184,7 @@ public class BoardDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Entfernen der Component: {ex.Message}";
+            ErrorMessage = $"Error removing component: {ex.Message}";
         }
         finally
         {
@@ -194,7 +194,7 @@ public class BoardDetailViewModel
     }
 
     /// <summary>
-    /// Löscht das gesamte Board
+    /// Deletes the entire board
     /// </summary>
     public async Task DeleteBoardAsync()
     {
@@ -220,7 +220,7 @@ public class BoardDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Löschen des Boards: {ex.Message}";
+            ErrorMessage = $"Error deleting board: {ex.Message}";
         }
         finally
         {

@@ -46,7 +46,7 @@ public class BoardListViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler: {ex.Message}";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {

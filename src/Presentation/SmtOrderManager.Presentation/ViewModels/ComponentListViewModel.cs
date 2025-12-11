@@ -36,7 +36,7 @@ public class ComponentListViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Lädt alle Components aus dem Backend
+    /// Loads all components from the backend
     /// </summary>
     public async Task LoadAsync()
     {
@@ -52,7 +52,7 @@ public class ComponentListViewModel
             if (result.Success)
             {
                 var components = result.GetOk();
-                Components = components.ToList(); // Direkt Domain-Entities
+                Components = components.ToList(); // Direct Domain-Entities
                 ErrorMessage = null;
             }
             else
@@ -63,7 +63,7 @@ public class ComponentListViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Components: {ex.Message}";
+            ErrorMessage = $"Error loading components: {ex.Message}";
             Components = new List<Component>();
         }
         finally
@@ -74,7 +74,7 @@ public class ComponentListViewModel
     }
 
     /// <summary>
-    /// Löscht eine Component
+    /// Deletes a component
     /// </summary>
     public async Task DeleteComponentAsync(Guid componentId)
     {
@@ -90,7 +90,7 @@ public class ComponentListViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Component erfolgreich gelöscht.";
+                SuccessMessage = "Component deleted successfully.";
                 Components.RemoveAll(c => c.Id == componentId);
             }
             else
@@ -100,7 +100,7 @@ public class ComponentListViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Löschen der Component: {ex.Message}";
+            ErrorMessage = $"Error deleting component: {ex.Message}";
         }
         finally
         {
@@ -110,7 +110,7 @@ public class ComponentListViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Create-Seite
+    /// Navigates to create page
     /// </summary>
     public void NavigateToCreate()
     {
@@ -118,7 +118,7 @@ public class ComponentListViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Detail-Seite einer Component
+    /// Navigates to component detail page
     /// </summary>
     public void NavigateToDetail(Guid componentId)
     {
@@ -126,7 +126,7 @@ public class ComponentListViewModel
     }
 
     /// <summary>
-    /// Wendet Suchfilter an
+    /// Applies search filter
     /// </summary>
     public void ApplySearch()
     {
@@ -134,7 +134,7 @@ public class ComponentListViewModel
     }
 
     /// <summary>
-    /// Setzt Suchfilter zurück
+    /// Resets search filter
     /// </summary>
     public void ClearSearch()
     {

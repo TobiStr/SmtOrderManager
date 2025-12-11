@@ -9,7 +9,7 @@ using SmtOrderManager.Domain.Entities;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für Component-Details und -Bearbeitung
+/// ViewModel for component details and editing
 /// </summary>
 public class ComponentDetailViewModel
 {
@@ -29,7 +29,7 @@ public class ComponentDetailViewModel
     public string? ErrorMessage { get; private set; }
     public string? SuccessMessage { get; private set; }
 
-    // Editable Properties (für Bearbeitungsmodus)
+    // Editable Properties (for edit mode)
     public string EditableName { get; set; } = string.Empty;
     public string EditableDescription { get; set; } = string.Empty;
     // File Upload State
@@ -41,7 +41,7 @@ public class ComponentDetailViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Lädt Component-Details
+    /// Loads component details
     /// </summary>
     public async Task LoadAsync(Guid componentId)
     {
@@ -71,7 +71,7 @@ public class ComponentDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Component: {ex.Message}";
+            ErrorMessage = $"Error loading component: {ex.Message}";
             Component = null;
         }
         finally
@@ -82,7 +82,7 @@ public class ComponentDetailViewModel
     }
 
     /// <summary>
-    /// Behandelt die Dateiauswahl für Image-Upload
+    /// Handles file selection for image upload
     /// </summary>
     public async Task HandleFileSelectedAsync(IBrowserFile? file)
     {
@@ -111,7 +111,7 @@ public class ComponentDetailViewModel
         var extension = Path.GetExtension(file.Name).ToLowerInvariant();
         if (!allowedExtensions.Contains(extension))
         {
-            ErrorMessage = $"Ungültiges Dateiformat. Erlaubt: {string.Join(", ", allowedExtensions)}";
+            ErrorMessage = $"Invalid file format. Allowed: {string.Join(", ", allowedExtensions)}";
             SelectedFile = null;
             FilePreviewUrl = null;
             NotifyStateChanged();
@@ -129,7 +129,7 @@ public class ComponentDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Vorschau: {ex.Message}";
+            ErrorMessage = $"Error loading preview: {ex.Message}";
             FilePreviewUrl = null;
         }
 
@@ -162,7 +162,7 @@ public class ComponentDetailViewModel
     }
 
     /// <summary>
-    /// Speichert Änderungen an der Component
+    /// Saves changes to the component
     /// </summary>
     public async Task SaveAsync()
     {
@@ -201,7 +201,7 @@ public class ComponentDetailViewModel
             if (result.Success)
             {
                 Component = result.GetOk();
-                SuccessMessage = "Component erfolgreich gespeichert.";
+                SuccessMessage = "Component saved successfully.";
                 IsEditMode = false;
                 SelectedFile = null;
                 FilePreviewUrl = null;
@@ -213,7 +213,7 @@ public class ComponentDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Speichern: {ex.Message}";
+            ErrorMessage = $"Error saving: {ex.Message}";
         }
         finally
         {
@@ -224,7 +224,7 @@ public class ComponentDetailViewModel
     }
 
     /// <summary>
-    /// Löscht die Component
+    /// Deletes the component
     /// </summary>
     public async Task DeleteAsync()
     {
@@ -250,7 +250,7 @@ public class ComponentDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Löschen: {ex.Message}";
+            ErrorMessage = $"Error deleting: {ex.Message}";
         }
         finally
         {
@@ -260,7 +260,7 @@ public class ComponentDetailViewModel
     }
 
     /// <summary>
-    /// Navigiert zurück zur Component-Liste
+    /// Navigates back to component list
     /// </summary>
     public void NavigateBack()
     {
@@ -282,7 +282,7 @@ public class ComponentDetailViewModel
     }
 
     /// <summary>
-    /// Prüft, ob gespeichert werden kann
+    /// Checks if save is possible
     /// </summary>
     public bool CanSave()
     {

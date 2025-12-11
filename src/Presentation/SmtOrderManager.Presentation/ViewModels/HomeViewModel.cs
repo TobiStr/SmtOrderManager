@@ -39,7 +39,7 @@ public class HomeViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler: {ex.Message}";
+            ErrorMessage = $"Error: {ex.Message}";
         }
         finally
         {

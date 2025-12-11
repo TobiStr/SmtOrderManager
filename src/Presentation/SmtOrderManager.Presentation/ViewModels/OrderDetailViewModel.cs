@@ -11,7 +11,7 @@ using SmtOrderManager.Presentation.Components.Shared;
 namespace SmtOrderManager.Presentation.ViewModels;
 
 /// <summary>
-/// ViewModel für Order-Details
+/// ViewModel for order details
 /// </summary>
 public class OrderDetailViewModel
 {
@@ -37,7 +37,7 @@ public class OrderDetailViewModel
     public event Action? StateChanged;
 
     /// <summary>
-    /// Lädt Order-Details
+    /// Loads order details
     /// </summary>
     public async Task LoadAsync(Guid orderId)
     {
@@ -63,7 +63,7 @@ public class OrderDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Laden der Order: {ex.Message}";
+            ErrorMessage = $"Error loading order: {ex.Message}";
             Order = null;
         }
         finally
@@ -93,7 +93,7 @@ public class OrderDetailViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Order erfolgreich eingereicht.";
+                SuccessMessage = "Order submitted successfully.";
                 Order = Order with { Status = OrderStatus.Submitted };
             }
             else
@@ -103,7 +103,7 @@ public class OrderDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Absenden der Order: {ex.Message}";
+            ErrorMessage = $"Error submitting order: {ex.Message}";
         }
         finally
         {
@@ -132,7 +132,7 @@ public class OrderDetailViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Order wurde storniert.";
+                SuccessMessage = "Order was cancelled.";
                 Order = Order with { Status = OrderStatus.Cancelled };
             }
             else
@@ -142,7 +142,7 @@ public class OrderDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Stornieren der Order: {ex.Message}";
+            ErrorMessage = $"Error cancelling order: {ex.Message}";
         }
         finally
         {
@@ -178,7 +178,7 @@ public class OrderDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Löschen der Order: {ex.Message}";
+            ErrorMessage = $"Error deleting order: {ex.Message}";
         }
         finally
         {
@@ -206,7 +206,7 @@ public class OrderDetailViewModel
 
             if (result.Success)
             {
-                SuccessMessage = "Board erfolgreich hinzugefügt.";
+                SuccessMessage = "Board added successfully.";
                 // Reload order to get updated boards
                 await LoadAsync(Order.Id);
             }
@@ -217,7 +217,7 @@ public class OrderDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Hinzufügen des Boards: {ex.Message}";
+            ErrorMessage = $"Error adding board: {ex.Message}";
         }
         finally
         {
@@ -227,7 +227,7 @@ public class OrderDetailViewModel
     }
 
     /// <summary>
-    /// Navigiert zur Board-Detail-Seite
+    /// Navigates to board detail page
     /// </summary>
     public void NavigateToBoard(Guid boardId)
     {
@@ -260,7 +260,7 @@ public class OrderDetailViewModel
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Fehler beim Entfernen des Boards: {ex.Message}";
+            ErrorMessage = $"Error removing board: {ex.Message}";
         }
         finally
         {
