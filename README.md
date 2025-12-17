@@ -1,8 +1,8 @@
-# smt-order-manager
+# SMTOrderManager
 
-An order manager for a SMT (Surface Mount Technology) environment - DEMO
+Demo Implementation of an order manager for a SMT (Surface Mount Technology) environment.
 
-This repository represents my solution for a coding challenge.
+This repository represents my solution for an interview coding challenge.
 
 ## Requirements (Must have)
 
@@ -123,7 +123,7 @@ This repository represents my solution for a coding challenge.
     - Password is hashed via IPasswordHasher (from .NET) and stored in the DB
   - Persistence across restarts via Cosmos/Blob.
   - The application layer and the infrastructure layer have a high unit test coverage
-  - One Integration Test was added to test the live behavior of the RegisterCommand (see `\test\SmtOrderManager.Tests\Integration\RegisterUserIntegrationTests.cs`) 
+  - One Integration Test was added to test the live behavior of the RegisterCommand (see `\test\SmtOrderManager.Tests\Integration\RegisterUserIntegrationTests.cs`)
     - Reuses the same DependencyInjection Setup from the Presentation Layer to be fully representable for the live system
     - Skipped in the CICD pipeline
     - Guarded through custom `IntegrationFactAttribute`
